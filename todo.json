@@ -1,0 +1,109 @@
+{
+  "tasks": [
+    {
+      "id": "1",
+      "title": "Update Gradle dependencies (Room, DataStore, Coil, Timber, Serialization)",
+      "status": "in_progress",
+      "priority": "high",
+      "details": "Add Room, DataStore, Coil (with GIF support), Timber, Kotlin Serialization to libs.versions.toml and app/build.gradle.kts"
+    },
+    {
+      "id": "2",
+      "title": "Copy dataset to assets (exercises.json, images/, videos/)",
+      "status": "pending",
+      "priority": "high",
+      "details": "Copy 1324 exercises JSON (~15MB), thumbnails (~8.5MB), GIFs (~123MB) to app/src/main/assets/"
+    },
+    {
+      "id": "3",
+      "title": "Create JSON management files (readme.json, history.json)",
+      "status": "pending",
+      "priority": "medium",
+      "details": "Create project documentation and history tracking files"
+    },
+    {
+      "id": "4",
+      "title": "Data Layer: Room Entity, DAO, Database",
+      "status": "pending",
+      "priority": "high",
+      "details": "Exercise entity, DAO with queries for category, equipment, favorites, search; Room database with pre-population"
+    },
+    {
+      "id": "5",
+      "title": "Data Layer: DataStore Preferences (Settings)",
+      "status": "pending",
+      "priority": "high",
+      "details": "Settings keys: language, enabled_equipment, grid_mode, auto_play_gif, favorites_only, gif_download_complete"
+    },
+    {
+      "id": "6",
+      "title": "Data Layer: Repository & JSON Loader",
+      "status": "pending",
+      "priority": "high",
+      "details": "ExerciseRepository with Flow queries, JSON parser to pre-populate Room on first launch"
+    },
+    {
+      "id": "7",
+      "title": "Core Utils: Logger (Timber + FileLogger), Telemetry, Application class",
+      "status": "pending",
+      "priority": "high",
+      "details": "Extensive logging, local telemetry (JSON file), crash logging, share logs via email"
+    },
+    {
+      "id": "8",
+      "title": "UI: MainScreen (Body Parts grid with playing GIFs)",
+      "status": "pending",
+      "priority": "high",
+      "details": "TopAppBar with settings/menu, Grid/List toggle, LazyVerticalGrid with Coil AnimatedImage for GIFs"
+    },
+    {
+      "id": "9",
+      "title": "UI: ExerciseListScreen (filtered by category + equipment + favorites)",
+      "status": "pending",
+      "priority": "high",
+      "details": "Search, favorite filter, equipment filter from settings, playing GIF thumbnails, click to detail"
+    },
+    {
+      "id": "10",
+      "title": "UI: FullscreenGifActivity (immersive GIF player with pinch-zoom)",
+      "status": "pending",
+      "priority": "high",
+      "details": "Coil AnimatedImage fullscreen, swipe down to dismiss, favorite toggle"
+    },
+    {
+      "id": "11",
+      "title": "UI: ExerciseDetailBottomSheet (instructions, details, favorite)",
+      "status": "pending",
+      "priority": "high",
+      "details": "Expandable bottom sheet with step-by-step instructions in selected language"
+    },
+    {
+      "id": "12",
+      "title": "UI: SettingsScreen (language, equipment filter, GIF management, debug)",
+      "status": "pending",
+      "priority": "high",
+      "details": "Language selector, equipment checkboxes, GIF download/clear, debug options, share logs, about"
+    },
+    {
+      "id": "13",
+      "title": "Navigation: NavGraph, deep links, navigation between screens",
+      "status": "pending",
+      "priority": "high",
+      "details": "Compose Navigation with routes for Main, ExerciseList, Detail, Settings, FullscreenGif"
+    },
+    {
+      "id": "14",
+      "title": "GIF Management: WorkManager for background copy from assets to internal storage",
+      "status": "pending",
+      "priority": "medium",
+      "details": "Copy GIFs on first launch or on-demand, track progress, settings option to download all"
+    },
+    {
+      "id": "15",
+      "title": "Build, test on emulator, verify all flows",
+      "status": "pending",
+      "priority": "high",
+      "details": "Run gradle build, start emulator, install APK, test all user flows"
+    }
+  ]
+}

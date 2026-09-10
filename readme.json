@@ -1,0 +1,45 @@
+{
+  "project": "My Gym Offline",
+  "description": "Offline Android app for gym exercises with 1,324 exercises, multilingual instructions, animated GIFs, and offline filtering by body part and equipment.",
+  "target_sdk": 36,
+  "min_sdk": 24,
+  "language": "Kotlin",
+  "ui_framework": "Jetpack Compose (Material 3)",
+  "architecture": "MVVM + Repository + Room + DataStore",
+  "dataset": {
+    "source": "C:\\Users\\mrper\\Development\\exercises-dataset",
+    "exercises": 1324,
+    "languages": 10,
+    "body_parts": 10,
+    "equipment_types": 17,
+    "thumbnails_size_mb": 8.5,
+    "gifs_size_mb": 123,
+    "license": "MIT (data) + Gym Visual media terms"
+  },
+  "key_features": [
+    "Body part grid/list with playing GIF thumbnails",
+    "Equipment filter from settings (17 types)",
+    "10 languages for instructions",
+    "Favorites with heart button",
+    "Fullscreen GIF player with pinch-zoom",
+    "Offline-first, no network required",
+    "Extensive logging + telemetry (local JSON)",
+    "Debug settings: share logs via email, reset DB, export telemetry"
+  ],
+  "dependencies": {
+    "room": "2.6.1",
+    "datastore": "1.1.1",
+    "coil": "2.6.0",
+    "timber": "5.0.1",
+    "navigation_compose": "2.8.3",
+    "kotlin_serialization": "1.6.3",
+    "workmanager": "2.9.0",
+    "lifecycle": "2.8.3"
+  },
+  "build_tools": {
+    "android_gradle_plugin": "9.0.1",
+    "kotlin": "2.3.20",
+    "compile_sdk": 36,
+    "build_tools": "35.0.0"
+  }
+}
