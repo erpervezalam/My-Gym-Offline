@@ -28,8 +28,7 @@ import com.example.mygymoffline.ui.components.AppTopAppBar
 import com.example.mygymoffline.ui.components.BodyPartCard
 import com.example.mygymoffline.ui.components.EmptyState
 import com.example.mygymoffline.util.Telemetry
-import kotlinx.coroutines.flow.collectAsStateWithLifecycle
-import androidx.lifecycle.Lifecycle
+import androidx.compose.runtime.collectAsStateWithLifecycle
 
 @Composable
 fun MainScreen(

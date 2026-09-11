@@ -1,7 +1,7 @@
 package com.example.mygymoffline
 
 import android.app.Application
-import androidx.lifecycle.ProcessLifecycleOwner
+import androidx.lifecycle.lifecycleScope
 import com.example.mygymoffline.data.db.ExerciseDatabase
 import com.example.mygymoffline.data.loader.ExerciseJsonLoader
 import com.example.mygymoffline.data.prefs.SettingsDataStore
@@ -11,6 +11,7 @@ import com.example.mygymoffline.util.Telemetry
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
 class MyGymApplication : Application() {
     private val supervisorJob = SupervisorJob()

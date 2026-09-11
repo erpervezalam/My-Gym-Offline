@@ -1,8 +1,6 @@
 package com.example.mygymoffline.data.repository
 
 import android.content.Context
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.RepeatOnLifecycleKt
 import com.example.mygymoffline.data.db.Exercise
 import com.example.mygymoffline.data.db.ExerciseDao
 import com.example.mygymoffline.data.db.ExerciseDatabase
@@ -14,9 +12,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.tasks.await
 
 class ExerciseRepository(
     private val context: Context,
@@ -37,7 +35,7 @@ class ExerciseRepository(
 
         if (!initialized) {
             AppLogger.i("ExerciseRepository", "First launch - pre-populating database from JSON")
-            val result = jsonLoader.loadExercises().await()
+            val result = jsonLoader.loadExercises()
             result.onSuccess { exercises ->
                 dao.insertAll(exercises)
                 AppLogger.i("ExerciseRepository", "Inserted ${exercises.size} exercises into database")
@@ -53,8 +51,8 @@ class ExerciseRepository(
     // Combined flow: category + equipment filter + favorites filter
     fun getExercisesForCategory(category: String): Flow<List<Exercise>> {
         return combine(
-            settings.enabledEquipmentFlow.asFlow(),
-            settings.favoritesOnlyFlow.asFlow()
+            settings.enabledEquipmentFlow,
+            settings.favoritesOnlyFlow
         ) { enabledEquipment, favoritesOnly ->
             Pair(enabledEquipment, favoritesOnly)
         }.flatMapLatest { (enabledEquipment, favoritesOnly) ->
@@ -68,16 +66,16 @@ class ExerciseRepository(
         }.distinctUntilChanged()
     }
 
-    fun getAllCategories(): Flow<List<String>> = dao.getAllCategories().asFlow()
+    fun getAllCategories(): Flow<List<String>> = dao.getAllCategories()
 
-    fun getAllEquipment(): Flow<List<String>> = dao.getAllEquipment().asFlow()
+    fun getAllEquipment(): Flow<List<String>> = dao.getAllEquipment()
 
-    fun getFavorites(): Flow<List<Exercise>> = dao.getFavorites().asFlow()
+    fun getFavorites(): Flow<List<Exercise>> = dao.getFavorites()
 
     fun searchExercises(query: String): Flow<List<Exercise>> {
         return combine(
-            settings.enabledEquipmentFlow.asFlow(),
-            settings.favoritesOnlyFlow.asFlow()
+            settings.enabledEquipmentFlow,
+            settings.favoritesOnlyFlow
         ) { enabledEquipment, favoritesOnly ->
             Pair(enabledEquipment, favoritesOnly)
         }.flatMapLatest { (enabledEquipment, favoritesOnly) ->

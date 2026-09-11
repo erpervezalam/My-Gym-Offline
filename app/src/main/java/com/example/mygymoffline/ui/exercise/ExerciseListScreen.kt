@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyVerticalGrid
-import androidx.compose.foundation.lazy.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.Card
@@ -36,7 +35,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil3.compose.AsyncImage
+import coil.compose.AsyncImage
 import com.example.mygymoffline.R
 import com.example.mygymoffline.data.db.Exercise
 import com.example.mygymoffline.data.repository.ExerciseRepository
@@ -44,8 +43,7 @@ import com.example.mygymoffline.navigation.NavController
 import com.example.mygymoffline.navigation.Destination
 import com.example.mygymoffline.ui.components.EmptyState
 import com.example.mygymoffline.util.Telemetry
-import kotlinx.coroutines.flow.collectAsStateWithLifecycle
-import androidx.lifecycle.Lifecycle
+import androidx.compose.runtime.collectAsStateWithLifecycle
 
 @Composable
 fun ExerciseListScreen(
@@ -69,33 +67,34 @@ fun ExerciseListScreen(
                 modifier = Modifier.fillMaxWidth(),
                 title = { Text(text = category.capitalize(), fontWeight = FontWeight.Bold) },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = androidx.compose.material3.MaterialTheme.colorScheme.surfaceContainerLow
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow
                 ),
                 navigationIcon = {
-                    androidx.compose.material3.IconButton(onClick = onBackClick) {
+                    IconButton(onClick = onBackClick) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                     }
                 },
                 actions = {
-                    androidx.compose.material3.IconButton(onClick = { showFavoritesOnly = !showFavoritesOnly }) {
+                    IconButton(onClick = { showFavoritesOnly = !showFavoritesOnly }) {
                         Icon(
                             imageVector = if (showFavoritesOnly) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                             contentDescription = if (showFavoritesOnly) "Show all exercises" else "Show favorites only",
-                            tint = if (showFavoritesOnly) androidx.compose.material3.MaterialTheme.colorScheme.error else androidx.compose.material3.MaterialTheme.colorScheme.onSurface
+                            tint = if (showFavoritesOnly) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
                         )
                     }
                 }
             )
 
-            // Search bar
-            androidx.compose.material3.SearchBar(
+            // Search bar - using TextField instead of SearchBar
+            androidx.compose.material3.TextField(
                 modifier = Modifier.fillMaxWidth().padding(16.dp),
-                text = searchQuery,
-                onTextChange = { searchQuery = it },
+                value = searchQuery,
+                onValueChange = { searchQuery = it },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search") },
                 placeholder = { Text("Search exercises...") },
-                colors = androidx.compose.material3.SearchBarDefaults.searchBarColors(
-                    containerColor = androidx.compose.material3.MaterialTheme.colorScheme.surfaceContainerHighest
+                singleLine = true,
+                colors = androidx.compose.material3.TextFieldDefaults.textFieldColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
                 )
             )
 
@@ -149,7 +148,7 @@ fun ExerciseCard(
         modifier = modifier,
         onClick = onClick,
         colors = CardDefaults.cardColors(
-            containerColor = androidx.compose.material3.MaterialTheme.colorScheme.surfaceContainerHighest
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
         )
     ) {
         Box(modifier = Modifier.fillMaxSize()) {

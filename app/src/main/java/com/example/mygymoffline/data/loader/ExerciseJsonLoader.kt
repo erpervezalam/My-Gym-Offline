@@ -5,11 +5,17 @@ import com.example.mygymoffline.data.db.Exercise
 import com.example.mygymoffline.util.AppLogger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.builtins.StringSerializer
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.builtins.MapSerializer
 import java.io.InputStreamReader
 
 class ExerciseJsonLoader(private val context: Context) {
+
+    private val json = Json { ignoreUnknownKeys = true }
 
     @Suppress("UNUSED_PARAMETER")
     suspend fun loadExercises(): Result<List<Exercise>> = withContext(Dispatchers.IO) {
@@ -17,10 +23,10 @@ class ExerciseJsonLoader(private val context: Context) {
             AppLogger.i("ExerciseJsonLoader", "Loading exercises from assets/exercises.json")
             val inputStream = context.assets.open("exercises.json")
             val reader = InputStreamReader(inputStream, "UTF-8")
-            val json = reader.readText()
+            val jsonText = reader.readText()
             reader.close()
 
-            val exercises = Json { ignoreUnknownKeys = true }.decodeFromString<List<JsonExercise>>(json)
+            val exercises = json.decodeFromString<List<JsonExercise>>(jsonText)
                 .map { it.toExercise() }
 
             AppLogger.i("ExerciseJsonLoader", "Loaded ${exercises.size} exercises from JSON")
@@ -31,39 +37,42 @@ class ExerciseJsonLoader(private val context: Context) {
         }
     }
 
-    private inline class JsonExercise(
-        val id: String,
-        val name: String,
-        val category: String,
-        val body_part: String,
-        val equipment: String,
-        val instructions: Map<String, String>,
-        val instruction_steps: Map<String, List<String>>,
-        val muscle_group: String,
-        val secondary_muscles: List<String>,
-        val target: String,
-        val media_id: String,
-        val image: String,
-        val gif_url: String,
-        val attribution: String,
-        val created_at: String
+    @kotlinx.serialization.Serializable
+    private data class JsonExercise(
+        @SerialName("id") val id: String,
+        @SerialName("name") val name: String,
+        @SerialName("category") val category: String,
+        @SerialName("body_part") val bodyPart: String,
+        @SerialName("equipment") val equipment: String,
+        @SerialName("instructions") val instructions: Map<String, String>,
+        @SerialName("instruction_steps") val instructionSteps: Map<String, List<String>>,
+        @SerialName("muscle_group") val muscleGroup: String,
+        @SerialName("secondary_muscles") val secondaryMuscles: List<String>,
+        @SerialName("target") val target: String,
+        @SerialName("media_id") val mediaId: String,
+        @SerialName("image") val image: String,
+        @SerialName("gif_url") val gifUrl: String,
+        @SerialName("attribution") val attribution: String,
+        @SerialName("created_at") val createdAt: String
     ) {
         fun toExercise(): Exercise {
+            val localJson = Json { ignoreUnknownKeys = true }
             return Exercise(
                 id = id,
                 name = name,
                 category = category,
                 equipment = equipment,
                 target = target,
-                muscleGroup = muscle_group,
-                secondaryMusclesJson = Json.encodeToString(secondary_muscles),
-                instructionsJson = Json.encodeToString(instructions),
-                instructionStepsJson = Json.encodeToString(instruction_steps),
+                muscleGroup = muscleGroup,
+                secondaryMusclesJson = localJson.encodeToString(ListSerializer(StringSerializer), secondaryMuscles),
+                instructionsJson = localJson.encodeToString(MapSerializer(StringSerializer, StringSerializer), instructions),
+                instructionStepsJson = localJson.encodeToString(MapSerializer(StringSerializer, ListSerializer(StringSerializer)), instructionSteps),
                 imagePath = image,
-                gifPath = gif_url,
-                mediaId = media_id,
+                gifPath = gifUrl,
+                mediaId = mediaId,
                 attribution = attribution,
                 isFavorite = false,
+                isDisliked = false,
                 createdAt = System.currentTimeMillis()
             )
         }

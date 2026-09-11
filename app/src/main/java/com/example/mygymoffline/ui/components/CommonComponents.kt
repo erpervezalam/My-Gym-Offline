@@ -11,8 +11,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Chip
-import androidx.compose.material3.ChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -38,7 +36,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil3.compose.AsyncImage
+import coil.compose.AsyncImage
 import com.example.mygymoffline.R
 
 @Composable
@@ -193,13 +191,20 @@ fun ExerciseCard(
                     horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    androidx.compose.material3.Chip(
-                        label = { Text(exercise.equipment, fontSize = 10.sp) },
-                        modifier = Modifier.height(24.dp),
-                        colors = androidx.compose.material3.ChipDefaults.elevatedChipColors(
-                            containerColor = MaterialTheme.colorScheme.secondaryContainer
+                    // Equipment badge using Text with background
+                    Box(
+                        modifier = Modifier
+                            .height(24.dp)
+                            .padding(horizontal = 8.dp)
+                            .background(MaterialTheme.colorScheme.secondaryContainer, RoundedCornerShape(12.dp))
+                            .padding(vertical = 4.dp)
+                    ) {
+                        Text(
+                            text = exercise.equipment,
+                            fontSize = 10.sp,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer
                         )
-                    )
+                    }
                     Text(
                         text = exercise.target,
                         fontSize = 12.sp,
