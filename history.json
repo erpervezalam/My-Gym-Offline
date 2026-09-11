@@ -1,0 +1,40 @@
+[
+  {
+    "timestamp": "2026-09-10T19:30:00Z",
+    "type": "init",
+    "title": "Project initialized",
+    "details": [
+      "Created Android project with Compose template (minSdk 24, targetSdk 36)",
+      "Initialized git repository",
+      "Added todo.json and readme.json for project management"
+    ],
+    "commit": "903e9c3"
+  },
+  {
+    "timestamp": "2026-09-10T19:35:00Z",
+    "type": "deps",
+    "title": "Updated Gradle dependencies",
+    "details": [
+      "Added Room 2.6.1 (runtime, ktx, compiler)",
+      "Added DataStore 1.1.1 (preferences, core)",
+      "Added Coil 2.6.0 (compose, gif)",
+      "Added Timber 5.0.1 for logging",
+      "Added Kotlinx Serialization 1.6.3",
+      "Added WorkManager 2.9.0 for background GIF copy",
+      "Added Navigation Compose 2.8.3",
+      "Added kapt plugin for Room annotation processing"
+    ],
+    "commit": "pending"
+  },
+  {
+    "timestamp": "2026-09-10T19:40:00Z",
+    "type": "assets",
+    "title": "Copied exercise dataset to assets",
+    "details": [
+      "exercises.json (1,324 exercises, ~15MB)",
+      "images/ (1,324 thumbnails, 180x180 JPG, ~8.5MB)",
+      "videos/ (1,324 animated GIFs, 180x180, ~123MB)"
+    ],
+    "commit": "pending"
+  }
+]
