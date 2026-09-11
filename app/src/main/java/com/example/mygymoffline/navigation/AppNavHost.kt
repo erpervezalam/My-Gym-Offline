@@ -5,6 +5,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.LaunchedEffect
+import kotlinx.coroutines.launch
 import com.example.mygymoffline.data.repository.ExerciseRepository
 import com.example.mygymoffline.data.prefs.SettingsDataStore
 import com.example.mygymoffline.ui.detail.ExerciseDetailBottomSheet
@@ -63,7 +65,10 @@ fun AppNavHost(
             )
         }
         is Destination.ExerciseDetail -> {
-            val exercise = repository.getExerciseById(destination.exerciseId)
+            var exercise by remember { mutableStateOf<com.example.mygymoffline.data.db.Exercise?>(null) }
+            LaunchedEffect(destination.exerciseId) {
+                exercise = repository.getExerciseById(destination.exerciseId)
+            }
             exercise?.let { ex ->
                 ExerciseDetailBottomSheet(
                     exercise = ex,
@@ -74,7 +79,10 @@ fun AppNavHost(
             }
         }
         is Destination.FullscreenGif -> {
-            val exercise = repository.getExerciseById(destination.exerciseId)
+            var exercise by remember { mutableStateOf<com.example.mygymoffline.data.db.Exercise?>(null) }
+            LaunchedEffect(destination.exerciseId) {
+                exercise = repository.getExerciseById(destination.exerciseId)
+            }
             exercise?.let { ex ->
                 FullscreenGifScreen(
                     exercise = ex,

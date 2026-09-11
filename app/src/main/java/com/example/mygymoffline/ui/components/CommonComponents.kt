@@ -1,13 +1,17 @@
 package com.example.mygymoffline.ui.components
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.clip
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -39,6 +43,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.mygymoffline.R
 
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
 fun AppTopAppBar(
     title: String,
@@ -160,7 +165,7 @@ fun ExerciseCard(
             Box(
                 modifier = Modifier
                     .size(100.dp)
-                    .clip(androidx.compose.foundation.shape.RoundedCornerShape(8.dp))
+                    .clip(RoundedCornerShape(8.dp))
             ) {
                 AsyncImage(
                     model = exercise.gifPath,
@@ -178,17 +183,17 @@ fun ExerciseCard(
                 modifier = Modifier
                     .weight(1f)
                     .padding(start = 12.dp),
-                verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(4.dp)
+                verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Text(
                     text = exercise.name,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 2,
-                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis
                 )
                 Row(
-                    horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     // Equipment badge using Text with background
@@ -216,7 +221,7 @@ fun ExerciseCard(
             // Favorite and Dislike Buttons
             Column(
                 modifier = Modifier.padding(start = 8.dp),
-                verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 IconButton(onClick = onFavoriteClick) {
                     Icon(
@@ -248,7 +253,7 @@ fun EmptyState(
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Icon(imageVector = icon, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(64.dp))
             Text(

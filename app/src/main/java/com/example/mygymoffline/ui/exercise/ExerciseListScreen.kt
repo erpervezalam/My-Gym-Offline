@@ -1,11 +1,14 @@
 package com.example.mygymoffline.ui.exercise
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.items
@@ -13,7 +16,9 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material.icons.Icons
@@ -28,11 +33,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -43,8 +50,12 @@ import com.example.mygymoffline.navigation.NavController
 import com.example.mygymoffline.navigation.Destination
 import com.example.mygymoffline.ui.components.EmptyState
 import com.example.mygymoffline.util.Telemetry
-import androidx.compose.runtime.collectAsStateWithLifecycle
+import kotlinx.coroutines.launch
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.runtime.OptIn
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExerciseListScreen(
     navController: NavController,
@@ -54,6 +65,7 @@ fun ExerciseListScreen(
 ) {
     var showFavoritesOnly by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
+    val coroutineScope = rememberCoroutineScope()
 
     val exercises by if (searchQuery.isNotBlank()) {
         repository.searchExercises(searchQuery).collectAsStateWithLifecycle(initialValue = emptyList())
@@ -93,7 +105,7 @@ fun ExerciseListScreen(
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search") },
                 placeholder = { Text("Search exercises...") },
                 singleLine = true,
-                colors = androidx.compose.material3.TextFieldDefaults.textFieldColors(
+                colors = TextFieldDefaults.textFieldColors(
                     containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
                 )
             )
@@ -116,11 +128,11 @@ fun ExerciseListScreen(
                                 navController.navigate(Destination.ExerciseDetail(exercise.id))
                             },
                             onFavoriteClick = {
-                                repository.toggleFavorite(exercise.id)
+                                coroutineScope.launch { repository.toggleFavorite(exercise.id) }
                                 Telemetry.trackEvent("favorite_toggle", "ExerciseList:$category", mapOf("exercise_id" to exercise.id, "is_favorite" to !exercise.isFavorite))
                             },
                             onDislikeClick = {
-                                repository.toggleDislike(exercise.id)
+                                coroutineScope.launch { repository.toggleDislike(exercise.id) }
                                 Telemetry.trackEvent("dislike_toggle", "ExerciseList:$category", mapOf("exercise_id" to exercise.id, "is_disliked" to !exercise.isDisliked))
                             },
                             onGifClick = {
@@ -175,7 +187,7 @@ fun ExerciseCard(
                         fontWeight = FontWeight.SemiBold,
                         color = Color.White,
                         maxLines = 2,
-                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis
                     )
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(4.dp)

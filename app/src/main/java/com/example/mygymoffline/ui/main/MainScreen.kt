@@ -9,6 +9,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -21,14 +24,15 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.mygymoffline.R
 import com.example.mygymoffline.data.repository.ExerciseRepository
 import com.example.mygymoffline.navigation.NavController
+import com.example.mygymoffline.navigation.Destination
 import com.example.mygymoffline.ui.components.AppTopAppBar
 import com.example.mygymoffline.ui.components.BodyPartCard
 import com.example.mygymoffline.ui.components.EmptyState
 import com.example.mygymoffline.util.Telemetry
-import androidx.compose.runtime.collectAsStateWithLifecycle
 
 @Composable
 fun MainScreen(
@@ -39,7 +43,7 @@ fun MainScreen(
     var isGridMode by remember { mutableStateOf(true) }
     var showFavoritesOnly by remember { mutableStateOf(false) }
 
-    val categories by repository.getAllCategories().collectAsStateWithLifecycle()
+    val categories by repository.getAllCategories().collectAsStateWithLifecycle(initialValue = emptyList())
     val favoriteCount by repository.getFavorites().collectAsStateWithLifecycle(initialValue = emptyList()).size
 
     // Get representative exercise for each category for thumbnail
@@ -80,13 +84,13 @@ fun MainScreen(
                             thumbnailPath = categoryThumbnails[category],
                             onClick = {
                                 Telemetry.trackScreenView("ExerciseList:$category")
-                                navController.navigate(com.example.mygymoffline.navigation.Destination.ExerciseList(category))
+                                navController.navigate(Destination.ExerciseList(category))
                             }
                         )
                     }
                 }
             } else {
-                androidx.compose.foundation.lazy.LazyColumn(
+                LazyColumn(
                     contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                     modifier = Modifier.fillMaxSize().padding(top = 8.dp)
@@ -99,7 +103,7 @@ fun MainScreen(
                             modifier = Modifier.fillMaxWidth(),
                             onClick = {
                                 Telemetry.trackScreenView("ExerciseList:$category")
-                                navController.navigate(com.example.mygymoffline.navigation.Destination.ExerciseList(category))
+                                navController.navigate(Destination.ExerciseList(category))
                             }
                         )
                     }

@@ -3,19 +3,15 @@ package com.example.mygymoffline.data.loader
 import android.content.Context
 import com.example.mygymoffline.data.db.Exercise
 import com.example.mygymoffline.util.AppLogger
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.builtins.StringSerializer
-import kotlinx.serialization.builtins.ListSerializer
-import kotlinx.serialization.builtins.MapSerializer
 import java.io.InputStreamReader
 
-class ExerciseJsonLoader(private val context: Context) {
+private val gson = Gson()
 
-    private val json = Json { ignoreUnknownKeys = true }
+class ExerciseJsonLoader(private val context: Context) {
 
     @Suppress("UNUSED_PARAMETER")
     suspend fun loadExercises(): Result<List<Exercise>> = withContext(Dispatchers.IO) {
@@ -23,11 +19,12 @@ class ExerciseJsonLoader(private val context: Context) {
             AppLogger.i("ExerciseJsonLoader", "Loading exercises from assets/exercises.json")
             val inputStream = context.assets.open("exercises.json")
             val reader = InputStreamReader(inputStream, "UTF-8")
-            val jsonText = reader.readText()
+
+            val exerciseListType = object : TypeToken<List<JsonExercise>>() {}.type
+            val jsonExercises = gson.fromJson<List<JsonExercise>>(reader, exerciseListType)
             reader.close()
 
-            val exercises = json.decodeFromString<List<JsonExercise>>(jsonText)
-                .map { it.toExercise() }
+            val exercises = jsonExercises.map { it.toExercise() }
 
             AppLogger.i("ExerciseJsonLoader", "Loaded ${exercises.size} exercises from JSON")
             Result.success(exercises)
@@ -37,39 +34,37 @@ class ExerciseJsonLoader(private val context: Context) {
         }
     }
 
-    @kotlinx.serialization.Serializable
     private data class JsonExercise(
-        @SerialName("id") val id: String,
-        @SerialName("name") val name: String,
-        @SerialName("category") val category: String,
-        @SerialName("body_part") val bodyPart: String,
-        @SerialName("equipment") val equipment: String,
-        @SerialName("instructions") val instructions: Map<String, String>,
-        @SerialName("instruction_steps") val instructionSteps: Map<String, List<String>>,
-        @SerialName("muscle_group") val muscleGroup: String,
-        @SerialName("secondary_muscles") val secondaryMuscles: List<String>,
-        @SerialName("target") val target: String,
-        @SerialName("media_id") val mediaId: String,
-        @SerialName("image") val image: String,
-        @SerialName("gif_url") val gifUrl: String,
-        @SerialName("attribution") val attribution: String,
-        @SerialName("created_at") val createdAt: String
+        val id: String,
+        val name: String,
+        val category: String,
+        val body_part: String,
+        val equipment: String,
+        val instructions: Map<String, String>,
+        val instruction_steps: Map<String, List<String>>,
+        val muscle_group: String,
+        val secondary_muscles: List<String>,
+        val target: String,
+        val media_id: String,
+        val image: String,
+        val gif_url: String,
+        val attribution: String,
+        val created_at: String
     ) {
         fun toExercise(): Exercise {
-            val localJson = Json { ignoreUnknownKeys = true }
             return Exercise(
                 id = id,
                 name = name,
                 category = category,
                 equipment = equipment,
                 target = target,
-                muscleGroup = muscleGroup,
-                secondaryMusclesJson = localJson.encodeToString(ListSerializer(StringSerializer), secondaryMuscles),
-                instructionsJson = localJson.encodeToString(MapSerializer(StringSerializer, StringSerializer), instructions),
-                instructionStepsJson = localJson.encodeToString(MapSerializer(StringSerializer, ListSerializer(StringSerializer)), instructionSteps),
+                muscleGroup = muscle_group,
+                secondaryMusclesJson = gson.toJson(secondary_muscles),
+                instructionsJson = gson.toJson(instructions),
+                instructionStepsJson = gson.toJson(instruction_steps),
                 imagePath = image,
-                gifPath = gifUrl,
-                mediaId = mediaId,
+                gifPath = gif_url,
+                mediaId = media_id,
                 attribution = attribution,
                 isFavorite = false,
                 isDisliked = false,

@@ -1,7 +1,6 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-    id("org.jetbrains.kotlin.plugin.serialization")
     id("org.jetbrains.kotlin.kapt")
 }
 
@@ -71,14 +70,11 @@ dependencies {
     // Timber (Logging)
     implementation(libs.timber)
 
-    // Kotlinx Serialization
-    implementation(libs.kotlinx.serialization.json)
+    // Gson (JSON parsing/serialization - replaces kotlinx.serialization)
+    implementation(libs.gson)
 
     // WorkManager (GIF background copy)
     implementation(libs.androidx.work.runtime)
-
-    // Navigation - using simple custom navigation instead of Navigation Compose to avoid kapt issues
-    // implementation(libs.androidx.navigation.compose)
 
     // Compose
     implementation(libs.androidx.compose.ui)

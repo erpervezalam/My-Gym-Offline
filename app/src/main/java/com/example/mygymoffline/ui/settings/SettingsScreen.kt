@@ -20,7 +20,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material.icons.Icons
@@ -28,15 +30,16 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filed.Download
-import androidx.compose.material.icons.filed.Email
-import androidx.compose.material.icons.filed.Info
-import androidx.compose.material.icons.filed.Refresh
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -47,8 +50,7 @@ import com.example.mygymoffline.R
 import com.example.mygymoffline.data.prefs.SettingsDataStore
 import com.example.mygymoffline.util.AppLogger
 import com.example.mygymoffline.util.Telemetry
-import kotlinx.coroutines.flow.collectAsStateWithLifecycle
-import androidx.lifecycle.Lifecycle
+import kotlinx.coroutines.launch
 
 @Composable
 fun SettingsScreen(

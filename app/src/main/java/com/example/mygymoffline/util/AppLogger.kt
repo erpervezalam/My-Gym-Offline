@@ -121,7 +121,7 @@ object AppLogger {
             sb.append(tag ?: "").append(": ")
             sb.append(message).append("\n")
             throwable?.let {
-                sb.append("  ").append(Log.getStackTraceString(it)).append("\n")
+                sb.append("  ").append(it.stackTraceToString()).append("\n")
             }
             return sb.toString()
         }

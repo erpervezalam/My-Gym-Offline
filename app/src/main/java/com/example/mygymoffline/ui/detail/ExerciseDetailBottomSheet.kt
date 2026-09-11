@@ -7,8 +7,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -30,6 +32,9 @@ import com.example.mygymoffline.data.db.Exercise
 import com.example.mygymoffline.data.repository.ExerciseRepository
 import com.example.mygymoffline.util.Telemetry
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.builtins.StringSerializer
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.builtins.MapSerializer
 
 @Composable
 fun ExerciseDetailBottomSheet(
@@ -43,13 +48,22 @@ fun ExerciseDetailBottomSheet(
     var expanded by remember { mutableStateOf(false) }
 
     val instructionsMap = remember(exercise) {
-        Json { ignoreUnknownKeys = true }.decodeFromString<Map<String, String>>(exercise.instructionsJson)
+        Json { ignoreUnknownKeys = true }.decodeFromString<Map<String, String>>(
+            exercise.instructionsJson,
+            MapSerializer(StringSerializer, StringSerializer)
+        )
     }
     val instructionStepsMap = remember(exercise) {
-        Json { ignoreUnknownKeys = true }.decodeFromString<Map<String, List<String>>>(exercise.instructionStepsJson)
+        Json { ignoreUnknownKeys = true }.decodeFromString<Map<String, List<String>>>(
+            exercise.instructionStepsJson,
+            MapSerializer(StringSerializer, ListSerializer(StringSerializer))
+        )
     }
     val secondaryMuscles = remember(exercise) {
-        Json { ignoreUnknownKeys = true }.decodeFromString<List<String>>(exercise.secondaryMusclesJson)
+        Json { ignoreUnknownKeys = true }.decodeFromString<List<String>>(
+            exercise.secondaryMusclesJson,
+            ListSerializer(StringSerializer)
+        )
     }
 
     val currentInstructions = instructionsMap[selectedLanguage] ?: instructionsMap["en"] ?: ""

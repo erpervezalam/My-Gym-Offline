@@ -2,20 +2,27 @@ package com.example.mygymoffline.data.prefs
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.serialization.builtins.SetSerializer
-import kotlinx.serialization.builtins.StringSerializer
-import kotlinx.serialization.json.Json
 
 class SettingsDataStore(private val prefs: SharedPreferences) {
+
+    private val gson = Gson()
 
     private val _language = MutableStateFlow(prefs.getString("language", "en") ?: "en")
     val languageFlow: Flow<String> = _language
 
     private val _enabledEquipment = MutableStateFlow(
         try {
-            Json.decodeFromString<Set<String>>(prefs.getString("enabled_equipment", "") ?: "")
+            val json = prefs.getString("enabled_equipment", "") ?: ""
+            if (json.isEmpty()) {
+                getDefaultEquipmentSet()
+            } else {
+                val type = object : TypeToken<Set<String>>() {}.type
+                gson.fromJson<Set<String>>(json, type)
+            }
         } catch (e: Exception) {
             getDefaultEquipmentSet()
         }
@@ -65,8 +72,8 @@ class SettingsDataStore(private val prefs: SharedPreferences) {
     }
 
     suspend fun setEnabledEquipment(equipment: Set<String>) {
-        val json = Json.encodeToString(SetSerializer(StringSerializer), equipment)
-        prefs.edit().putString("enabled_equipment", json).apply()
+        val jsonString = gson.toJson(equipment)
+        prefs.edit().putString("enabled_equipment", jsonString).apply()
         _enabledEquipment.value = equipment
     }
 
