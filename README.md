@@ -60,9 +60,15 @@ This app uses the **Exercises Dataset** (1,324 exercises) which includes:
 
 ### 🙏 Dataset Credit
 
-The exercise data, images, and GIFs are sourced from the **[exercises-dataset](https://github.com/erpervezalam/exercises-dataset)** repository by **Er Pervez Alam**. This dataset is released under the **MIT License** (data) with media assets subject to **Gym Visual media terms**.
+This app is powered by the **[Exercises Dataset](https://github.com/hasaneyldrm/exercises-dataset)** — a comprehensive fitness exercise dataset with 1,324 exercises, each with animation GIFs, thumbnails, and step-by-step instructions in 10 languages.
 
-> **Note**: The dataset source is located at `C:\Users\mrper\Development\exercises-dataset` locally.
+| Component | Source & License |
+|-----------|------------------|
+| **Dataset structure, code, tooling, instruction text** | [MIT License](https://github.com/hasaneyldrm/exercises-dataset/blob/main/LICENSE) — free for any use |
+| **Exercise media (images & GIFs)** | © [Gym visual](https://gymvisual.com/) — used **with permission** at 180×180 resolution. Redistribution governed by [Gym visual Terms & Conditions](https://gymvisual.com/content/3-terms-and-conditions-of-use). Attribution `© Gym visual — https://gymvisual.com/` must be kept intact. |
+| **Also powers** | [LogPress](https://github.com/hasaneyldrm/logpress-public) — AI-assisted workout tracker |
+
+> **Note**: The dataset source is located at `C:\Users\mrper\Development\exercises-dataset` locally. See [`NOTICE.md`](https://github.com/hasaneyldrm/exercises-dataset/blob/main/NOTICE.md) for full media attribution details.
 
 ---
 
@@ -166,12 +172,15 @@ SOFTWARE.
 
 ### Third-Party Licenses
 
-- **Exercise Dataset**: MIT License (data) + Gym Visual media terms — [exercises-dataset](https://github.com/erpervezalam/exercises-dataset)
-- **AndroidX Libraries**: Apache License 2.0
-- **Coil**: Apache License 2.0
-- **Timber**: Apache License 2.0
-- **Gson**: Apache License 2.0
-- **Kotlin**: Apache License 2.0
+| Component | License | Source |
+|-----------|---------|--------|
+| **Exercises Dataset** (code, structure, instructions) | MIT | [hasaneyldrm/exercises-dataset](https://github.com/hasaneyldrm/exercises-dataset) |
+| **Exercise Media** (images & GIFs) | Gym visual Terms | © [Gym visual](https://gymvisual.com/) — used with permission |
+| **AndroidX Libraries** | Apache 2.0 | [AndroidX](https://developer.android.com/jetpack/androidx) |
+| **Coil** | Apache 2.0 | [coil-kt/coil](https://github.com/coil-kt/coil) |
+| **Timber** | Apache 2.0 | [JakeWharton/timber](https://github.com/JakeWharton/timber) |
+| **Gson** | Apache 2.0 | [google/gson](https://github.com/google/gson) |
+| **Kotlin** | Apache 2.0 | [JetBrains/kotlin](https://github.com/JetBrains/kotlin) |
 
 ---
 
