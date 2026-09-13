@@ -25,6 +25,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Search
@@ -69,6 +70,7 @@ fun ExerciseListScreen(
     onBackClick: () -> Unit
 ) {
     var showFavoritesOnly by remember { mutableStateOf(false) }
+    var showSearch by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
     val coroutineScope = rememberCoroutineScope()
 
@@ -103,19 +105,26 @@ fun ExerciseListScreen(
                 }
             )
 
-            // Search bar - using TextField instead of SearchBar
-            androidx.compose.material3.TextField(
-                modifier = Modifier.fillMaxWidth().padding(16.dp),
-                value = searchQuery,
-                onValueChange = { searchQuery = it },
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search") },
-                placeholder = { Text("Search exercises...") },
-                singleLine = true,
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest
+            if (showSearch) {
+                androidx.compose.material3.TextField(
+                    modifier = Modifier.fillMaxWidth().padding(12.dp),
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search") },
+                    trailingIcon = {
+                        IconButton(onClick = {
+                            searchQuery = ""
+                            showSearch = false
+                        }) { Icon(Icons.Default.Close, contentDescription = "Close search") }
+                    },
+                    placeholder = { Text("Search exercises...") },
+                    singleLine = true,
+                    colors = TextFieldDefaults.colors(
+                        focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest
+                    )
                 )
-            )
+            }
 
             if (visibleExercises.isEmpty()) {
                 EmptyState(message = if (showFavoritesOnly) "No favorite exercises in this category" else "No exercises found for this category")
@@ -147,6 +156,12 @@ fun ExerciseListScreen(
                     }
                 }
             }
+        }
+        androidx.compose.material3.FloatingActionButton(
+            modifier = Modifier.align(Alignment.BottomEnd).padding(20.dp),
+            onClick = { showSearch = true }
+        ) {
+            Icon(Icons.Default.Search, contentDescription = "Search exercises")
         }
     }
 }
