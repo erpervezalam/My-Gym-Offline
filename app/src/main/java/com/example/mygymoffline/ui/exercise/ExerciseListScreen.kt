@@ -197,11 +197,10 @@ fun ExerciseCard(
                     modifier = Modifier
                         .align(Alignment.TopStart)
                         .padding(5.dp)
-                        .background(Color.DarkGray.copy(alpha = 0.68f), RoundedCornerShape(14.dp))
-                        .padding(horizontal = 1.dp),
+                        .background(Color.DarkGray.copy(alpha = 0.68f), RoundedCornerShape(9.dp)),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    IconButton(onClick = onFavoriteClick, modifier = Modifier.size(32.dp)) {
+                    IconButton(onClick = onFavoriteClick, modifier = Modifier.size(20.dp)) {
                         Icon(
                             imageVector = if (exercise.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                             contentDescription = if (exercise.isFavorite) "Remove from favorites" else "Add to favorites",
@@ -209,7 +208,7 @@ fun ExerciseCard(
                             modifier = Modifier.size(10.dp)
                         )
                     }
-                    IconButton(onClick = onDislikeClick, modifier = Modifier.size(32.dp)) {
+                    IconButton(onClick = onDislikeClick, modifier = Modifier.size(20.dp)) {
                         Icon(
                             imageVector = if (exercise.isDisliked) Icons.Default.ThumbDown else Icons.Default.ThumbDownOffAlt,
                             contentDescription = if (exercise.isDisliked) "Remove dislike" else "Dislike exercise",
