@@ -98,7 +98,7 @@ fun BodyPartCard(
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .height(if (compactList) 76.dp else 164.dp),
+            .height(if (compactList) 76.dp else 144.dp),
         onClick = onClick,
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
@@ -135,7 +135,7 @@ fun BodyPartCard(
                 CategoryText(
                     name = name,
                     exerciseCount = exerciseCount,
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 7.dp)
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 5.dp)
                 )
             }
         }
