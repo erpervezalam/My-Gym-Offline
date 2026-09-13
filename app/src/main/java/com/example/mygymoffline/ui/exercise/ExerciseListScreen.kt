@@ -76,12 +76,13 @@ fun ExerciseListScreen(
     } else {
         repository.getExercisesForCategory(category).collectAsStateWithLifecycle(initialValue = emptyList())
     }
+    val visibleExercises = exercises.filterFavorites(showFavoritesOnly)
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column {
             TopAppBar(
                 modifier = Modifier.fillMaxWidth(),
-                title = { Text(text = category.capitalize(), fontWeight = FontWeight.Bold) },
+                title = { Text(text = category.replaceFirstChar { it.uppercase() }, fontWeight = FontWeight.Bold) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surfaceContainerLow
                 ),
@@ -115,17 +116,17 @@ fun ExerciseListScreen(
                 )
             )
 
-            if (exercises.isEmpty()) {
-                EmptyState(message = "No exercises found for this category")
+            if (visibleExercises.isEmpty()) {
+                EmptyState(message = if (showFavoritesOnly) "No favorite exercises in this category" else "No exercises found for this category")
             } else {
                 LazyVerticalGrid(
-                    columns = GridCells.Fixed(2),
+                    columns = GridCells.Fixed(1),
                     contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                     modifier = Modifier.fillMaxSize().padding(top = 8.dp)
                 ) {
-                    items(exercises) { exercise ->
+                    items(visibleExercises, key = { it.id }) { exercise ->
                         ExerciseCard(
                             exercise = exercise,
                             gifSourceResolver = gifSourceResolver,
@@ -148,6 +149,9 @@ fun ExerciseListScreen(
         }
     }
 }
+
+internal fun List<Exercise>.filterFavorites(showFavoritesOnly: Boolean): List<Exercise> =
+    if (showFavoritesOnly) filter { it.isFavorite } else this
 
 @Composable
 fun ExerciseCard(
@@ -172,12 +176,12 @@ fun ExerciseCard(
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(148.dp)
+                    .height(190.dp)
             )
             Row(modifier = Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(exercise.name.replaceFirstChar { it.uppercase() }, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                    Text("${exercise.equipment.replaceFirstChar { it.uppercase() }} • ${exercise.target.replaceFirstChar { it.uppercase() }}", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(exercise.name.replaceFirstChar { it.uppercase() }, fontSize = 18.sp, fontWeight = FontWeight.SemiBold, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    Text("${exercise.equipment.replaceFirstChar { it.uppercase() }} • ${exercise.target.replaceFirstChar { it.uppercase() }}", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
                 Row {
                     IconButton(onClick = onFavoriteClick) {
