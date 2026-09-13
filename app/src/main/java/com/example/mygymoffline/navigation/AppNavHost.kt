@@ -77,10 +77,11 @@ fun AppNavHost(
 
     when (destination) {
         is Destination.Main -> {
-            MainScreen(
-                navController = navController,
-                repository = repository,
-                onSettingsClick = { navController.navigate(Destination.Settings) }
+                MainScreen(
+                    navController = navController,
+                    repository = repository,
+                    settings = settings,
+                    onSettingsClick = { navController.navigate(Destination.Settings) }
             )
         }
         is Destination.ExerciseList -> {

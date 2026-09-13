@@ -49,6 +49,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -236,6 +237,7 @@ fun SettingsScreen(
                         title = "Grid View",
                         subtitle = "Show body parts as grid (off = list)",
                         checked = gridMode,
+                        modifier = Modifier.testTag("grid-mode-toggle"),
                         onCheckedChange = { coroutineScope.launch { settings.setGridMode(it) } }
                     )
                     SettingsToggle(
@@ -390,6 +392,7 @@ fun SettingsToggle(
     title: String,
     subtitle: String? = null,
     checked: Boolean,
+    modifier: Modifier = Modifier,
     onCheckedChange: (Boolean) -> Unit
 ) {
     Row(
@@ -402,6 +405,7 @@ fun SettingsToggle(
             subtitle?.let { Text(it, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant) }
         }
         androidx.compose.material3.Switch(
+            modifier = modifier,
             checked = checked,
             onCheckedChange = onCheckedChange
         )
