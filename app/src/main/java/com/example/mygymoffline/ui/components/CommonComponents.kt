@@ -97,7 +97,7 @@ fun BodyPartCard(
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .height(if (thumbnailPath == null) 96.dp else 220.dp)
+            .height(if (thumbnailPath == null) 84.dp else 184.dp)
             .padding(16.dp),
         onClick = onClick,
         colors = CardDefaults.cardColors(
@@ -113,12 +113,12 @@ fun BodyPartCard(
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(112.dp)
+                        .height(96.dp)
                 )
             }
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(text = name, fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                Text(text = "$exerciseCount exercises", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Column(modifier = Modifier.padding(12.dp)) {
+                Text(text = name, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                Text(text = "$exerciseCount exercises", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }

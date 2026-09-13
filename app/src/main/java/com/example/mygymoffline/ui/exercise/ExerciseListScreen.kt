@@ -120,10 +120,10 @@ fun ExerciseListScreen(
                 EmptyState(message = if (showFavoritesOnly) "No favorite exercises in this category" else "No exercises found for this category")
             } else {
                 LazyVerticalGrid(
-                    columns = GridCells.Fixed(1),
-                    contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    columns = GridCells.Fixed(2),
+                    contentPadding = androidx.compose.foundation.layout.PaddingValues(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
                     modifier = Modifier.fillMaxSize().padding(top = 8.dp)
                 ) {
                     items(visibleExercises, key = { it.id }) { exercise ->
@@ -176,12 +176,12 @@ fun ExerciseCard(
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(190.dp)
+                    .height(118.dp)
             )
-            Row(modifier = Modifier.fillMaxWidth().padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(modifier = Modifier.fillMaxWidth().padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(exercise.name.replaceFirstChar { it.uppercase() }, fontSize = 18.sp, fontWeight = FontWeight.SemiBold, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                    Text("${exercise.equipment.replaceFirstChar { it.uppercase() }} • ${exercise.target.replaceFirstChar { it.uppercase() }}", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text(exercise.name.replaceFirstChar { it.uppercase() }, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    Text("${exercise.equipment.replaceFirstChar { it.uppercase() }} • ${exercise.target.replaceFirstChar { it.uppercase() }}", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
                 Row {
                     IconButton(onClick = onFavoriteClick) {
@@ -189,7 +189,7 @@ fun ExerciseCard(
                             imageVector = if (exercise.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                             contentDescription = if (exercise.isFavorite) "Remove from favorites" else "Add to favorites",
                             tint = if (exercise.isFavorite) Color.Red else MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier.size(20.dp)
                         )
                     }
                     IconButton(onClick = onDislikeClick) {
@@ -197,7 +197,7 @@ fun ExerciseCard(
                             imageVector = if (exercise.isDisliked) Icons.Default.ThumbDown else Icons.Default.ThumbDownOffAlt,
                             contentDescription = if (exercise.isDisliked) "Remove dislike" else "Dislike exercise",
                             tint = if (exercise.isDisliked) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier.size(20.dp)
                         )
                     }
                 }
