@@ -3,23 +3,23 @@ package com.example.mygymoffline.ui.detail
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Favorite
@@ -50,6 +50,7 @@ import kotlinx.coroutines.launch
 import coil.compose.AsyncImage
 
 @Composable
+@OptIn(ExperimentalMaterial3Api::class)
 fun ExerciseDetailBottomSheet(
     exercise: Exercise,
     repository: ExerciseRepository,
@@ -83,64 +84,60 @@ fun ExerciseDetailBottomSheet(
     val currentInstructions = instructionsMap[selectedLanguage] ?: instructionsMap["en"] ?: ""
     val currentSteps = instructionStepsMap[selectedLanguage] ?: instructionStepsMap["en"] ?: emptyList()
 
-    Card(
+    Scaffold(
         modifier = Modifier.fillMaxSize(),
-        colors = CardDefaults.cardColors(
-            containerColor = androidx.compose.material3.MaterialTheme.colorScheme.surfaceContainerLow
-        )
-    ) {
-        Column(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            Column(
-                modifier = Modifier.fillMaxWidth().height(104.dp)
-            ) {
-                Spacer(Modifier.height(32.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth().height(56.dp).padding(horizontal = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    IconButton(onClick = onCloseClick, modifier = Modifier.size(40.dp)) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+        topBar = {
+            TopAppBar(
+                title = {
                     Text(
                         text = exercise.name.toTitleCase(),
-                        modifier = Modifier.weight(1f).padding(horizontal = 8.dp),
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(2.dp)
-                    ) {
-                        IconButton(modifier = Modifier.size(40.dp), onClick = {
-                            isFavorite = !isFavorite
-                            coroutineScope.launch { repository.toggleFavorite(exercise.id) }
-                            Telemetry.trackEvent("favorite_toggle", "DetailBottomSheet", mapOf("exercise_id" to exercise.id, "is_favorite" to isFavorite))
-                        }) {
-                            Icon(
-                                imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                                contentDescription = if (isFavorite) "Remove from favorites" else "Add to favorites",
-                                tint = if (isFavorite) androidx.compose.material3.MaterialTheme.colorScheme.error else androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
-                        IconButton(modifier = Modifier.size(40.dp), onClick = {
-                            isDisliked = !isDisliked
-                            coroutineScope.launch { repository.toggleDislike(exercise.id) }
-                            Telemetry.trackEvent("dislike_toggle", "DetailBottomSheet", mapOf("exercise_id" to exercise.id, "is_disliked" to isDisliked))
-                        }) {
-                            Icon(
-                                imageVector = if (isDisliked) Icons.Default.ThumbDown else Icons.Default.ThumbDownOffAlt,
-                                contentDescription = if (isDisliked) "Remove dislike" else "Dislike exercise",
-                                tint = if (isDisliked) androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f) else androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
+                },
+                navigationIcon = {
+                    IconButton(onClick = onCloseClick) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
-                }
-            }
+                },
+                actions = {
+                    IconButton(onClick = {
+                        isFavorite = !isFavorite
+                        coroutineScope.launch { repository.toggleFavorite(exercise.id) }
+                        Telemetry.trackEvent("favorite_toggle", "DetailBottomSheet", mapOf("exercise_id" to exercise.id, "is_favorite" to isFavorite))
+                    }) {
+                        Icon(
+                            imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                            contentDescription = if (isFavorite) "Remove from favorites" else "Add to favorites",
+                            tint = if (isFavorite) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                    IconButton(onClick = {
+                        isDisliked = !isDisliked
+                        coroutineScope.launch { repository.toggleDislike(exercise.id) }
+                        Telemetry.trackEvent("dislike_toggle", "DetailBottomSheet", mapOf("exercise_id" to exercise.id, "is_disliked" to isDisliked))
+                    }) {
+                        Icon(
+                            imageVector = if (isDisliked) Icons.Default.ThumbDown else Icons.Default.ThumbDownOffAlt,
+                            contentDescription = if (isDisliked) "Remove dislike" else "Dislike exercise",
+                            tint = if (isDisliked) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f) else MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                )
+            )
+        }
+    ) { contentPadding ->
+        Column(
+            modifier = Modifier.fillMaxSize().padding(contentPadding)
+        ) {
 
             AsyncImage(
                 model = gifSourceResolver.modelFor(exercise.gifPath),
