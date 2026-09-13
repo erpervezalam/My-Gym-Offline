@@ -2,6 +2,7 @@ package com.example.mygymoffline.ui.settings
 
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -29,10 +30,13 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.runtime.Composable
@@ -105,8 +109,8 @@ fun SettingsScreen(
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(12.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         // Header
         item {
@@ -124,67 +128,62 @@ fun SettingsScreen(
             )
         }
 
-        // Language Section
         item {
-            SettingsSection(title = "Language") {
-                ExposedDropdownMenuBox(
-                    modifier = Modifier.fillMaxWidth(),
-                    expanded = expandedLanguage,
-                    onExpandedChange = { expandedLanguage = !expandedLanguage }
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHighest)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    androidx.compose.material3.TextField(
-                        modifier = Modifier.fillMaxWidth().menuAnchor(),
-                        value = SettingsCatalog.languages.find { it.first == language }?.second ?: "English",
-                        onValueChange = {},
-                        readOnly = true,
-                        label = { Text("Select Language") },
-                        singleLine = true,
-                        colors = androidx.compose.material3.TextFieldDefaults.colors(
-                            focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest
-                        )
-                    )
-                    DropdownMenu(
-                        expanded = expandedLanguage,
-                        onDismissRequest = { expandedLanguage = false }
-                    ) {
-                        SettingsCatalog.languages.forEach { (code, name) ->
-                            DropdownMenuItem(
-                                text = { Text(name) },
-                                onClick = {
-                                    expandedLanguage = false
-                                    coroutineScope.launch { settings.setLanguage(code) }
-                                }
-                            )
+                    Text("Language", modifier = Modifier.weight(1f), fontSize = 16.sp, fontWeight = FontWeight.Medium)
+                    Box {
+                        TextButton(onClick = { expandedLanguage = true }) {
+                            Text(SettingsCatalog.languages.find { it.first == language }?.second ?: "English")
+                            Icon(Icons.Default.ArrowDropDown, contentDescription = "Choose language")
+                        }
+                        DropdownMenu(expanded = expandedLanguage, onDismissRequest = { expandedLanguage = false }) {
+                            SettingsCatalog.languages.forEach { (code, name) ->
+                                DropdownMenuItem(
+                                    text = { Text(name) },
+                                    onClick = {
+                                        expandedLanguage = false
+                                        coroutineScope.launch { settings.setLanguage(code) }
+                                    }
+                                )
+                            }
                         }
                     }
                 }
             }
         }
 
-        // Equipment Filter Section
         item {
-            SettingsSection(title = "Equipment Filter", subtitle = "Select equipment types to show") {
+            SettingsSection(title = "Equipment") {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Row(
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        modifier = Modifier.fillMaxWidth().padding(8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("Show ${enabledEquipment.size} of ${SettingsDataStore.getDefaultEquipmentSet().size} equipment types")
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            TextButton(onClick = {
-                                coroutineScope.launch { settings.setEnabledEquipment(SettingsDataStore.getDefaultEquipmentSet()) }
-                            }) {
-                                Text("Select All", fontSize = 14.sp)
-                            }
-                            TextButton(onClick = {
-                                coroutineScope.launch { settings.setEnabledEquipment(emptySet()) }
-                            }) {
-                                Text("Clear All", fontSize = 14.sp)
-                            }
-                        }
+                        Text(
+                            text = "${enabledEquipment.size}/${SettingsDataStore.getDefaultEquipmentSet().size} selected",
+                            modifier = Modifier.weight(1f),
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        TextButton(onClick = {
+                            coroutineScope.launch { settings.setEnabledEquipment(SettingsDataStore.getDefaultEquipmentSet()) }
+                        }) { Text("All", fontSize = 14.sp) }
+                        TextButton(onClick = {
+                            coroutineScope.launch { settings.setEnabledEquipment(emptySet()) }
+                        }) { Text("Clear", fontSize = 14.sp) }
                     }
-                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
                         SettingsDataStore.getDefaultEquipmentSet().sorted().forEach { equipment ->
                             FilterChip(
                                 selected = equipment in enabledEquipment,
@@ -263,47 +262,53 @@ fun SettingsScreen(
             }
         }
 
-        // Debug Section
         item {
-            SettingsSection(title = "Debug", subtitle = "Developer options") {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHighest)
+            ) {
+                Column {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { expandedDebug = !expandedDebug }
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("Debug", modifier = Modifier.weight(1f), fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                        Icon(
+                            imageVector = if (expandedDebug) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                            contentDescription = if (expandedDebug) "Hide debug options" else "Show debug options"
+                        )
+                    }
                     if (expandedDebug) {
+                        Divider(color = MaterialTheme.colorScheme.outlineVariant)
+                        Column(
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
                         SettingsRow(
                             title = "Share Logs",
                             subtitle = "Email app logs for debugging",
                             trailing = {
-                                androidx.compose.material3.Button(onClick = {
-                                    shareLogs()
-                                }) {
-                                    Text("Share")
-                                }
+                                Button(onClick = { shareLogs() }) { Text("Share") }
                             }
                         )
                         SettingsRow(
                             title = "Reset Database",
                             subtitle = "Re-import all exercises from JSON",
                             trailing = {
-                                androidx.compose.material3.Button(onClick = {
-                                    resetDatabase()
-                                }) {
-                                    Text("Reset")
-                                }
+                                Button(onClick = { resetDatabase() }) { Text("Reset") }
                             }
                         )
                         SettingsRow(
                             title = "Export Telemetry",
                             subtitle = "Share telemetry data",
                             trailing = {
-                                androidx.compose.material3.Button(onClick = {
-                                    exportTelemetry()
-                                }) {
-                                    Text("Export")
-                                }
+                                Button(onClick = { exportTelemetry() }) { Text("Export") }
                             }
                         )
-                    }
-                    androidx.compose.material3.TextButton(onClick = { expandedDebug = !expandedDebug }) {
-                        Text(if (expandedDebug) "Hide Debug Options" else "Show Debug Options")
+                        }
                     }
                 }
             }
