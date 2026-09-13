@@ -55,6 +55,7 @@ import com.example.mygymoffline.data.repository.ExerciseRepository
 import com.example.mygymoffline.navigation.NavController
 import com.example.mygymoffline.navigation.Destination
 import com.example.mygymoffline.ui.components.EmptyState
+import com.example.mygymoffline.ui.components.toTitleCase
 import com.example.mygymoffline.ui.media.GifSourceResolver
 import com.example.mygymoffline.ui.media.ExerciseGif
 import com.example.mygymoffline.util.Telemetry
@@ -89,7 +90,7 @@ fun ExerciseListScreen(
         topBar = {
             TopAppBar(
                 modifier = Modifier.fillMaxWidth(),
-                title = { Text(text = category.replaceFirstChar { it.uppercase() }, fontWeight = FontWeight.Bold) },
+                title = { Text(text = category.toTitleCase(), fontWeight = FontWeight.Bold) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surfaceContainerLow
                 ),
@@ -241,7 +242,7 @@ fun ExerciseCard(
                 }
             }
             Column(modifier = Modifier.fillMaxWidth().padding(8.dp)) {
-                    Text(exercise.name.replaceFirstChar { it.uppercase() }, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    Text(exercise.name.toTitleCase(), fontSize = 14.sp, fontWeight = FontWeight.SemiBold, maxLines = 2, overflow = TextOverflow.Ellipsis)
                     Text("${exercise.equipment.replaceFirstChar { it.uppercase() }} • ${exercise.target.replaceFirstChar { it.uppercase() }}", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 }
         }

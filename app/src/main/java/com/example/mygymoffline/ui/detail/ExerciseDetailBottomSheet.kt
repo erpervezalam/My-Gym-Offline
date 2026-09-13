@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.sp
 import com.example.mygymoffline.data.db.Exercise
 import com.example.mygymoffline.data.repository.ExerciseRepository
 import com.example.mygymoffline.ui.media.GifSourceResolver
+import com.example.mygymoffline.ui.components.toTitleCase
 import com.example.mygymoffline.util.Telemetry
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -243,8 +244,3 @@ private fun DetailRow(label: String, value: String) {
 
 private fun String.toDisplayText(): String =
     replaceFirstChar { it.uppercase() }
-
-private fun String.toTitleCase(): String =
-    trim().split(Regex("\\s+")).joinToString(" ") { word ->
-        word.lowercase().replaceFirstChar { it.titlecase() }
-    }

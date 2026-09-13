@@ -30,6 +30,7 @@ import com.example.mygymoffline.navigation.Destination
 import com.example.mygymoffline.ui.components.AppTopAppBar
 import com.example.mygymoffline.ui.components.BodyPartCard
 import com.example.mygymoffline.ui.components.EmptyState
+import com.example.mygymoffline.ui.components.toTitleCase
 import com.example.mygymoffline.util.Telemetry
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberCoroutineScope
@@ -102,7 +103,7 @@ fun MainScreen(
                 ) {
                     items(categories) { category ->
                         BodyPartCard(
-                            name = category.replaceFirstChar { it.uppercase() },
+                            name = category.toTitleCase(),
                             exerciseCount = countsByCategory[category] ?: 0,
                             thumbnailPath = previewsByCategory[category],
                             onClick = {
@@ -124,7 +125,7 @@ fun MainScreen(
                 ) {
                     items(categories) { category ->
                         BodyPartCard(
-                            name = category.replaceFirstChar { it.uppercase() },
+                            name = category.toTitleCase(),
                             exerciseCount = countsByCategory[category] ?: 0,
                             thumbnailPath = previewsByCategory[category],
                             compactList = true,
