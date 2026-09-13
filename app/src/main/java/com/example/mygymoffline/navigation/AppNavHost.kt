@@ -6,6 +6,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.produceState
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
 import com.example.mygymoffline.data.repository.ExerciseRepository
 import com.example.mygymoffline.data.prefs.SettingsDataStore
@@ -13,6 +16,7 @@ import com.example.mygymoffline.ui.detail.ExerciseDetailBottomSheet
 import com.example.mygymoffline.ui.detail.FullscreenGifScreen
 import com.example.mygymoffline.ui.exercise.ExerciseListScreen
 import com.example.mygymoffline.ui.main.MainScreen
+import com.example.mygymoffline.ui.media.GifSourceResolver
 import com.example.mygymoffline.ui.settings.SettingsScreen
 
 sealed interface Destination {
@@ -47,6 +51,18 @@ fun AppNavHost(
     settings: SettingsDataStore
 ) {
     val destination = navController.currentDestination
+    val customGifDirectoryUri by settings.customGifDirectoryUriFlow
+        .collectAsStateWithLifecycle(initialValue = null)
+    val context = LocalContext.current
+    val gifOverrides by produceState<Map<String, android.net.Uri>>(
+        initialValue = emptyMap(),
+        key1 = customGifDirectoryUri
+    ) {
+        value = GifSourceResolver.loadOverrides(context, customGifDirectoryUri)
+    }
+    val gifSourceResolver = remember(gifOverrides) {
+        GifSourceResolver(gifOverrides)
+    }
 
     when (destination) {
         is Destination.Main -> {
@@ -61,6 +77,7 @@ fun AppNavHost(
                 navController = navController,
                 repository = repository,
                 category = destination.category,
+                gifSourceResolver = gifSourceResolver,
                 onBackClick = { navController.popBackStack() }
             )
         }
@@ -85,9 +102,10 @@ fun AppNavHost(
             }
             exercise?.let { ex ->
                 FullscreenGifScreen(
-                    exercise = ex,
-                    repository = repository,
-                    onCloseClick = { navController.popBackStack() }
+                exercise = ex,
+                repository = repository,
+                gifSourceResolver = gifSourceResolver,
+                onCloseClick = { navController.popBackStack() }
                 )
             }
         }

@@ -3,6 +3,7 @@ package com.example.mygymoffline.ui.detail
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Card
@@ -22,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,10 +33,9 @@ import androidx.compose.ui.unit.sp
 import com.example.mygymoffline.data.db.Exercise
 import com.example.mygymoffline.data.repository.ExerciseRepository
 import com.example.mygymoffline.util.Telemetry
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.builtins.StringSerializer
-import kotlinx.serialization.builtins.ListSerializer
-import kotlinx.serialization.builtins.MapSerializer
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
+import kotlinx.coroutines.launch
 
 @Composable
 fun ExerciseDetailBottomSheet(
@@ -45,25 +46,25 @@ fun ExerciseDetailBottomSheet(
 ) {
     var isFavorite by remember { mutableStateOf(exercise.isFavorite) }
     var isDisliked by remember { mutableStateOf(exercise.isDisliked) }
-    var expanded by remember { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
 
     val instructionsMap = remember(exercise) {
-        Json { ignoreUnknownKeys = true }.decodeFromString<Map<String, String>>(
+        Gson().fromJson<Map<String, String>>(
             exercise.instructionsJson,
-            MapSerializer(StringSerializer, StringSerializer)
-        )
+            object : TypeToken<Map<String, String>>() {}.type
+        ) ?: emptyMap()
     }
     val instructionStepsMap = remember(exercise) {
-        Json { ignoreUnknownKeys = true }.decodeFromString<Map<String, List<String>>>(
+        Gson().fromJson<Map<String, List<String>>>(
             exercise.instructionStepsJson,
-            MapSerializer(StringSerializer, ListSerializer(StringSerializer))
-        )
+            object : TypeToken<Map<String, List<String>>>() {}.type
+        ) ?: emptyMap()
     }
     val secondaryMuscles = remember(exercise) {
-        Json { ignoreUnknownKeys = true }.decodeFromString<List<String>>(
+        Gson().fromJson<List<String>>(
             exercise.secondaryMusclesJson,
-            ListSerializer(StringSerializer)
-        )
+            object : TypeToken<List<String>>() {}.type
+        ) ?: emptyList()
     }
 
     val currentInstructions = instructionsMap[selectedLanguage] ?: instructionsMap["en"] ?: ""
@@ -95,7 +96,7 @@ fun ExerciseDetailBottomSheet(
                 ) {
                     IconButton(onClick = {
                         isFavorite = !isFavorite
-                        repository.toggleFavorite(exercise.id)
+                        coroutineScope.launch { repository.toggleFavorite(exercise.id) }
                         Telemetry.trackEvent("favorite_toggle", "DetailBottomSheet", mapOf("exercise_id" to exercise.id, "is_favorite" to isFavorite))
                     }) {
                         Icon(
@@ -106,7 +107,7 @@ fun ExerciseDetailBottomSheet(
                     }
                     IconButton(onClick = {
                         isDisliked = !isDisliked
-                        repository.toggleDislike(exercise.id)
+                        coroutineScope.launch { repository.toggleDislike(exercise.id) }
                         Telemetry.trackEvent("dislike_toggle", "DetailBottomSheet", mapOf("exercise_id" to exercise.id, "is_disliked" to isDisliked))
                     }) {
                         Icon(
@@ -130,7 +131,7 @@ fun ExerciseDetailBottomSheet(
                     DetailRow("Secondary Muscles", secondaryMuscles.joinToString(", "))
                 }
 
-                androidx.compose.foundation.layout.Divider(
+                Divider(
                     color = androidx.compose.material3.MaterialTheme.colorScheme.outlineVariant
                 )
 

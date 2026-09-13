@@ -1,8 +1,11 @@
 package com.example.mygymoffline.ui.settings
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -38,11 +41,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.collectAsStateWithLifecycle
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -50,22 +57,50 @@ import com.example.mygymoffline.R
 import com.example.mygymoffline.data.prefs.SettingsDataStore
 import com.example.mygymoffline.util.AppLogger
 import com.example.mygymoffline.util.Telemetry
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
 
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     settings: SettingsDataStore,
     onBackClick: () -> Unit
 ) {
     val language by settings.languageFlow.collectAsStateWithLifecycle(initialValue = "en")
-    val enabledEquipment by settings.enabledEquipmentFlow.collectAsStateWithLifecycle()
+    val enabledEquipment by settings.enabledEquipmentFlow.collectAsStateWithLifecycle(initialValue = emptySet())
     val gridMode by settings.gridModeFlow.collectAsStateWithLifecycle(initialValue = true)
     val autoPlayGif by settings.autoPlayGifFlow.collectAsStateWithLifecycle(initialValue = true)
-    val gifDownloadComplete by settings.gifDownloadCompleteFlow.collectAsStateWithLifecycle(initialValue = false)
-    val gifCacheSize by settings.gifCacheSizeFlow.collectAsStateWithLifecycle(initialValue = 0L)
+    val customGifDirectoryUri by settings.customGifDirectoryUriFlow.collectAsStateWithLifecycle(initialValue = null)
 
     var expandedEquipment by remember { mutableStateOf(false) }
     var expandedDebug by remember { mutableStateOf(false) }
+    val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val gifDirectoryPicker = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocumentTree()
+    ) { uri ->
+        if (uri != null) {
+            try {
+                context.contentResolver.takePersistableUriPermission(
+                    uri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
+                customGifDirectoryUri
+                    ?.takeIf { it != uri.toString() }
+                    ?.let { previousUri ->
+                        runCatching {
+                            context.contentResolver.releasePersistableUriPermission(
+                                Uri.parse(previousUri),
+                                Intent.FLAG_GRANT_READ_URI_PERMISSION
+                            )
+                        }
+                    }
+                coroutineScope.launch { settings.setCustomGifDirectoryUri(uri.toString()) }
+            } catch (error: SecurityException) {
+                AppLogger.w("Settings", "Unable to retain GIF folder access")
+            }
+        }
+    }
 
     val languages = listOf(
         "en" to "English",
@@ -117,8 +152,9 @@ fun SettingsScreen(
                         label = { Text("Select Language") },
                         trailingIcon = { Icon(Icons.Default.ArrowDropDown, contentDescription = "Expand") },
                         singleLine = true,
-                        colors = androidx.compose.material3.TextFieldDefaults.textFieldColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
+                        colors = androidx.compose.material3.TextFieldDefaults.colors(
+                            focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest
                         )
                     )
                 }
@@ -136,7 +172,7 @@ fun SettingsScreen(
                             leadingContent = {
                                 androidx.compose.material3.Checkbox(
                                     checked = code == language,
-                                    onCheckedChange = { if (it) settings.setLanguage(code) }
+                                    onCheckedChange = { if (it) coroutineScope.launch { settings.setLanguage(code) } }
                                 )
                             }
                         )
@@ -155,10 +191,16 @@ fun SettingsScreen(
                     ) {
                         Text("Show ${enabledEquipment.size} of ${getDefaultEquipmentSet().size} equipment types")
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text("Select All", fontSize = 14.sp)
-                                .let { androidx.compose.material3.TextButton(onClick = { settings.setEnabledEquipment(getDefaultEquipmentSet()) }) { it } }
-                            Text("Clear All", fontSize = 14.sp)
-                                .let { androidx.compose.material3.TextButton(onClick = { settings.setEnabledEquipment(emptySet()) }) { it } }
+                            TextButton(onClick = {
+                                coroutineScope.launch { settings.setEnabledEquipment(getDefaultEquipmentSet()) }
+                            }) {
+                                Text("Select All", fontSize = 14.sp)
+                            }
+                            TextButton(onClick = {
+                                coroutineScope.launch { settings.setEnabledEquipment(emptySet()) }
+                            }) {
+                                Text("Clear All", fontSize = 14.sp)
+                            }
                         }
                     }
                     if (expandedEquipment) {
@@ -172,7 +214,7 @@ fun SettingsScreen(
                                         onCheckedChange = { checked ->
                                             val newSet = enabledEquipment.toMutableSet()
                                             if (checked) newSet.add(equipment) else newSet.remove(equipment)
-                                            settings.setEnabledEquipment(newSet)
+                                            coroutineScope.launch { settings.setEnabledEquipment(newSet) }
                                         }
                                     )
                                 }
@@ -194,52 +236,49 @@ fun SettingsScreen(
                         title = "Grid View",
                         subtitle = "Show body parts as grid (off = list)",
                         checked = gridMode,
-                        onCheckedChange = { settings.setGridMode(it) }
+                        onCheckedChange = { coroutineScope.launch { settings.setGridMode(it) } }
                     )
                     SettingsToggle(
                         title = "Auto-play GIFs",
                         subtitle = "Automatically play animated GIFs in lists",
                         checked = autoPlayGif,
-                        onCheckedChange = { settings.setAutoPlayGif(it) }
+                        onCheckedChange = { coroutineScope.launch { settings.setAutoPlayGif(it) } }
                     )
                 }
             }
         }
 
-        // GIF Management Section
+        // Exercise media section
         item {
-            SettingsSection(title = "GIF Management") {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    SettingsRow(
-                        title = "GIF Cache Status",
-                        subtitle = if (gifDownloadComplete) "All GIFs downloaded" else "GIFs load on demand",
-                        trailing = {
-                            if (!gifDownloadComplete) {
-                                androidx.compose.material3.Button(
-                                    onClick = {
-                                        // Trigger GIF download
-                                        Telemetry.trackEvent("gif_download_start", "Settings", emptyMap())
-                                    }
-                                ) {
-                                    Text("Download All GIFs")
-                                }
-                            } else {
-                                Text("Complete", color = MaterialTheme.colorScheme.primary)
-                            }
+            SettingsSection(
+                title = "Exercise Media",
+                subtitle = "Bundled GIFs work offline. A selected folder can override matching filenames."
+            ) {
+                SettingsRow(
+                    title = "High-resolution GIF folder",
+                    subtitle = if (customGifDirectoryUri == null) {
+                        "Using bundled animations"
+                    } else {
+                        "Custom folder selected; missing files use bundled animations"
+                    },
+                    trailing = {
+                        TextButton(onClick = { gifDirectoryPicker.launch(null) }) {
+                            Text(if (customGifDirectoryUri == null) "Choose Folder" else "Change")
                         }
-                    )
-                    SettingsRow(
-                        title = "Cache Size",
-                        subtitle = formatFileSize(gifCacheSize),
-                        trailing = {
-                            androidx.compose.material3.Button(onClick = {
-                                settings.setGifCacheSize(0)
-                                Telemetry.trackEvent("gif_cache_clear", "Settings", emptyMap())
-                            }) {
-                                Text("Clear Cache")
-                            }
+                    }
+                )
+                if (customGifDirectoryUri != null) {
+                    TextButton(onClick = {
+                        runCatching {
+                            context.contentResolver.releasePersistableUriPermission(
+                                Uri.parse(customGifDirectoryUri),
+                                Intent.FLAG_GRANT_READ_URI_PERMISSION
+                            )
                         }
-                    )
+                        coroutineScope.launch { settings.setCustomGifDirectoryUri(null) }
+                    }) {
+                        Text("Use Bundled GIFs Only")
+                    }
                 }
             }
         }
@@ -331,7 +370,7 @@ fun SettingsSection(
 fun SettingsRow(
     title: String,
     subtitle: String? = null,
-    trailing: @Composable () -> Unit
+    trailing: @Composable () -> Unit = {}
 ) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
@@ -375,15 +414,6 @@ private fun getDefaultEquipmentSet(): Set<String> {
         "band", "smith machine", "kettlebell", "weighted", "stability ball",
         "ez barbell", "other"
     )
-}
-
-private fun formatFileSize(bytes: Long): String {
-    return when {
-        bytes < 1024 -> "$bytes B"
-        bytes < 1024 * 1024 -> "${bytes / 1024} KB"
-        bytes < 1024 * 1024 * 1024 -> String.format("%.1f MB", bytes / (1024.0 * 1024))
-        else -> String.format("%.1f GB", bytes / (1024.0 * 1024 * 1024))
-    }
 }
 
 private fun shareLogs() {

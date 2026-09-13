@@ -3,10 +3,8 @@ package com.example.mygymoffline.util
 import android.content.Context
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-import kotlinx.serialization.json.Json
+import com.google.gson.GsonBuilder
 import java.io.File
 import java.io.FileWriter
 import java.text.SimpleDateFormat
@@ -60,7 +58,7 @@ object Telemetry {
             timestamp = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault()).format(Date()),
             eventType = eventName,
             screenName = screenName,
-            properties = properties + ("session_id" to currentSessionId)
+            properties = properties + mapOf("session_id" to currentSessionId)
         )
         eventBuffer.computeIfAbsent(eventName) { mutableListOf() }.add(event)
     }
@@ -75,7 +73,7 @@ object Telemetry {
         trackEvent("error", null, mapOf(
             "error_type" to errorType,
             "message" to message,
-            "stack_trace" to stackTrace ?: ""
+            "stack_trace" to (stackTrace ?: "")
         ))
     }
 
@@ -95,7 +93,7 @@ object Telemetry {
             val file = File(telemetryDir!!, "$TELEMETRY_FILE_PREFIX$date.json")
             val allEvents = eventBuffer.values.flatten().toList()
             if (allEvents.isNotEmpty()) {
-                val json = Json { prettyPrint = true }.encodeToString(allEvents)
+                val json = GsonBuilder().setPrettyPrinting().create().toJson(allEvents)
                 FileWriter(file, true).use { it.write(json + "\n") }
                 eventBuffer.clear()
             }

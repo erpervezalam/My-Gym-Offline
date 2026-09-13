@@ -5,11 +5,12 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.Card
@@ -40,6 +41,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -49,11 +51,11 @@ import com.example.mygymoffline.data.repository.ExerciseRepository
 import com.example.mygymoffline.navigation.NavController
 import com.example.mygymoffline.navigation.Destination
 import com.example.mygymoffline.ui.components.EmptyState
+import com.example.mygymoffline.ui.media.GifSourceResolver
 import com.example.mygymoffline.util.Telemetry
 import kotlinx.coroutines.launch
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.runtime.OptIn
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -61,6 +63,7 @@ fun ExerciseListScreen(
     navController: NavController,
     repository: ExerciseRepository,
     category: String,
+    gifSourceResolver: GifSourceResolver,
     onBackClick: () -> Unit
 ) {
     var showFavoritesOnly by remember { mutableStateOf(false) }
@@ -105,8 +108,9 @@ fun ExerciseListScreen(
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search") },
                 placeholder = { Text("Search exercises...") },
                 singleLine = true,
-                colors = TextFieldDefaults.textFieldColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest
                 )
             )
 
@@ -123,6 +127,7 @@ fun ExerciseListScreen(
                     items(exercises) { exercise ->
                         ExerciseCard(
                             exercise = exercise,
+                            gifSourceResolver = gifSourceResolver,
                             onClick = {
                                 Telemetry.trackEvent("exercise_click", "ExerciseList:$category", mapOf("exercise_id" to exercise.id))
                                 navController.navigate(Destination.ExerciseDetail(exercise.id))
@@ -150,6 +155,7 @@ fun ExerciseListScreen(
 @Composable
 fun ExerciseCard(
     exercise: Exercise,
+    gifSourceResolver: GifSourceResolver,
     onClick: () -> Unit,
     onFavoriteClick: () -> Unit,
     onDislikeClick: () -> Unit,
@@ -166,7 +172,7 @@ fun ExerciseCard(
         Box(modifier = Modifier.fillMaxSize()) {
             // GIF as background
             AsyncImage(
-                model = exercise.gifPath,
+                model = gifSourceResolver.modelFor(exercise.gifPath),
                 contentDescription = "Exercise GIF",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize()
@@ -240,7 +246,6 @@ fun ExerciseCard(
                 modifier = Modifier
                     .fillMaxSize()
                     .clickable { onGifClick() },
-                contentAlignment = Alignment.Center
             )
         }
     }

@@ -38,19 +38,14 @@ class SettingsDataStore(private val prefs: SharedPreferences) {
     private val _favoritesOnly = MutableStateFlow(prefs.getBoolean("favorites_only", false))
     val favoritesOnlyFlow: Flow<Boolean> = _favoritesOnly
 
-    private val _gifDownloadComplete = MutableStateFlow(prefs.getBoolean("gif_download_complete", false))
-    val gifDownloadCompleteFlow: Flow<Boolean> = _gifDownloadComplete
-
-    private val _gifCacheSize = MutableStateFlow(prefs.getLong("gif_cache_size", 0L))
-    val gifCacheSizeFlow: Flow<Long> = _gifCacheSize
+    private val _customGifDirectoryUri = MutableStateFlow(prefs.getString("custom_gif_directory_uri", null))
+    val customGifDirectoryUriFlow: Flow<String?> = _customGifDirectoryUri
 
     companion object {
         const val DEFAULT_LANGUAGE = "en"
         const val DEFAULT_GRID_MODE = true
         const val DEFAULT_AUTO_PLAY_GIF = true
         const val DEFAULT_FAVORITES_ONLY = false
-        const val DEFAULT_GIF_DOWNLOAD_COMPLETE = false
-        const val DEFAULT_GIF_CACHE_SIZE = 0L
 
         fun create(context: Context): SettingsDataStore {
             val prefs = context.getSharedPreferences("my_gym_offline_settings", Context.MODE_PRIVATE)
@@ -92,13 +87,8 @@ class SettingsDataStore(private val prefs: SharedPreferences) {
         _favoritesOnly.value = enabled
     }
 
-    suspend fun setGifDownloadComplete(complete: Boolean) {
-        prefs.edit().putBoolean("gif_download_complete", complete).apply()
-        _gifDownloadComplete.value = complete
-    }
-
-    suspend fun setGifCacheSize(size: Long) {
-        prefs.edit().putLong("gif_cache_size", size).apply()
-        _gifCacheSize.value = size
+    suspend fun setCustomGifDirectoryUri(uri: String?) {
+        prefs.edit().putString("custom_gif_directory_uri", uri).apply()
+        _customGifDirectoryUri.value = uri
     }
 }
