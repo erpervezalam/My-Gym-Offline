@@ -39,6 +39,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
@@ -170,38 +171,43 @@ fun ExerciseCard(
         )
     ) {
         Column {
-            AsyncImage(
-                model = gifSourceResolver.modelFor(exercise.gifPath),
-                contentDescription = "Exercise GIF",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(118.dp)
-            )
-            Row(modifier = Modifier.fillMaxWidth().padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(exercise.name.replaceFirstChar { it.uppercase() }, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, maxLines = 2, overflow = TextOverflow.Ellipsis)
-                    Text("${exercise.equipment.replaceFirstChar { it.uppercase() }} • ${exercise.target.replaceFirstChar { it.uppercase() }}", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                }
-                Row {
-                    IconButton(onClick = onFavoriteClick) {
+            Box(modifier = Modifier.fillMaxWidth().height(118.dp)) {
+                AsyncImage(
+                    model = gifSourceResolver.modelFor(exercise.gifPath),
+                    contentDescription = "Exercise GIF",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.fillMaxSize()
+                )
+                Row(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(6.dp)
+                        .background(Color.DarkGray.copy(alpha = 0.72f), RoundedCornerShape(18.dp))
+                        .padding(horizontal = 2.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(onClick = onFavoriteClick, modifier = Modifier.size(36.dp)) {
                         Icon(
                             imageVector = if (exercise.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                             contentDescription = if (exercise.isFavorite) "Remove from favorites" else "Add to favorites",
-                            tint = if (exercise.isFavorite) Color.Red else MaterialTheme.colorScheme.onSurface,
+                            tint = if (exercise.isFavorite) Color.Red else Color.White,
                             modifier = Modifier.size(20.dp)
                         )
                     }
-                    IconButton(onClick = onDislikeClick) {
+                    IconButton(onClick = onDislikeClick, modifier = Modifier.size(36.dp)) {
                         Icon(
                             imageVector = if (exercise.isDisliked) Icons.Default.ThumbDown else Icons.Default.ThumbDownOffAlt,
                             contentDescription = if (exercise.isDisliked) "Remove dislike" else "Dislike exercise",
-                            tint = if (exercise.isDisliked) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
+                            tint = Color.White,
                             modifier = Modifier.size(20.dp)
                         )
                     }
                 }
             }
+            Column(modifier = Modifier.fillMaxWidth().padding(8.dp)) {
+                    Text(exercise.name.replaceFirstChar { it.uppercase() }, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    Text("${exercise.equipment.replaceFirstChar { it.uppercase() }} • ${exercise.target.replaceFirstChar { it.uppercase() }}", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
         }
     }
 }
