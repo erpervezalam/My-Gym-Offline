@@ -78,17 +78,16 @@ fun MainScreen(
             } else if (isGridMode) {
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(2),
-                    contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    contentPadding = androidx.compose.foundation.layout.PaddingValues(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(top = 8.dp)
                         .testTag("category-grid")
                 ) {
                     items(categories) { category ->
                         BodyPartCard(
-                            name = category.capitalize(),
+                            name = category.replaceFirstChar { it.uppercase() },
                             exerciseCount = countsByCategory[category] ?: 0,
                             thumbnailPath = previewsByCategory[category],
                             onClick = {
@@ -100,18 +99,18 @@ fun MainScreen(
                 }
             } else {
                 LazyColumn(
-                    contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    contentPadding = androidx.compose.foundation.layout.PaddingValues(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(top = 8.dp)
                         .testTag("category-list")
                 ) {
                     items(categories) { category ->
                         BodyPartCard(
-                            name = category.capitalize(),
+                            name = category.replaceFirstChar { it.uppercase() },
                             exerciseCount = countsByCategory[category] ?: 0,
-                            thumbnailPath = null,
+                            thumbnailPath = previewsByCategory[category],
+                            compactList = true,
                             modifier = Modifier.fillMaxWidth(),
                             onClick = {
                                 Telemetry.trackScreenView("ExerciseList:$category")

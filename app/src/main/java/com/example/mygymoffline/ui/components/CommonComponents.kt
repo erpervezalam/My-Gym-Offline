@@ -91,36 +91,74 @@ fun BodyPartCard(
     name: String,
     exerciseCount: Int,
     thumbnailPath: String?,
+    compactList: Boolean = false,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .height(if (thumbnailPath == null) 84.dp else 184.dp)
-            .padding(16.dp),
+            .height(if (compactList) 76.dp else 164.dp),
         onClick = onClick,
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
         )
     ) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            // Keep text outside the preview so it remains readable on every frame.
-            thumbnailPath?.let { path ->
-                AsyncImage(
-                    model = GifSourceResolver.bundledAssetUri(path),
-                    contentDescription = "$name exercise preview",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(96.dp)
+        if (compactList) {
+            Row(
+                modifier = Modifier.fillMaxSize().padding(start = 12.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                CategoryText(name = name, exerciseCount = exerciseCount, modifier = Modifier.weight(1f))
+                thumbnailPath?.let { path ->
+                    AsyncImage(
+                        model = GifSourceResolver.bundledAssetUri(path),
+                        contentDescription = "$name exercise preview",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.size(60.dp).clip(RoundedCornerShape(8.dp))
+                    )
+                }
+            }
+        } else {
+            Column(modifier = Modifier.fillMaxSize()) {
+                // Keep text outside the preview so it remains readable on every frame.
+                thumbnailPath?.let { path ->
+                    AsyncImage(
+                        model = GifSourceResolver.bundledAssetUri(path),
+                        contentDescription = "$name exercise preview",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(86.dp)
+                    )
+                }
+                CategoryText(
+                    name = name,
+                    exerciseCount = exerciseCount,
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 7.dp)
                 )
             }
-            Column(modifier = Modifier.padding(12.dp)) {
-                Text(text = name, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                Text(text = "$exerciseCount exercises", fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
         }
+    }
+}
+
+@Composable
+private fun CategoryText(name: String, exerciseCount: Int, modifier: Modifier = Modifier) {
+    Column(modifier = modifier) {
+        Text(
+            text = name,
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+        Text(
+            text = "$exerciseCount exercises",
+            fontSize = 12.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
     }
 }
 
