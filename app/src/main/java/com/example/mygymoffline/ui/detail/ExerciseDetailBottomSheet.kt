@@ -4,8 +4,14 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
@@ -14,7 +20,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.ThumbDown
@@ -27,21 +33,26 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.mygymoffline.data.db.Exercise
 import com.example.mygymoffline.data.repository.ExerciseRepository
+import com.example.mygymoffline.ui.media.GifSourceResolver
 import com.example.mygymoffline.util.Telemetry
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.launch
+import coil.compose.AsyncImage
 
 @Composable
 fun ExerciseDetailBottomSheet(
     exercise: Exercise,
     repository: ExerciseRepository,
     selectedLanguage: String,
+    gifSourceResolver: GifSourceResolver,
+    onGifClick: () -> Unit,
     onCloseClick: () -> Unit
 ) {
     var isFavorite by remember { mutableStateOf(exercise.isFavorite) }
@@ -77,7 +88,9 @@ fun ExerciseDetailBottomSheet(
         )
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // Header with close button
@@ -86,11 +99,16 @@ fun ExerciseDetailBottomSheet(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = exercise.name,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(onClick = onCloseClick) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                    }
+                    Text(
+                        text = exercise.name,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
@@ -102,7 +120,8 @@ fun ExerciseDetailBottomSheet(
                         Icon(
                             imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                             contentDescription = if (isFavorite) "Remove from favorites" else "Add to favorites",
-                            tint = if (isFavorite) androidx.compose.material3.MaterialTheme.colorScheme.error else androidx.compose.material3.MaterialTheme.colorScheme.onSurface
+                            tint = if (isFavorite) androidx.compose.material3.MaterialTheme.colorScheme.error else androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.size(30.dp)
                         )
                     }
                     IconButton(onClick = {
@@ -113,14 +132,23 @@ fun ExerciseDetailBottomSheet(
                         Icon(
                             imageVector = if (isDisliked) Icons.Default.ThumbDown else Icons.Default.ThumbDownOffAlt,
                             contentDescription = if (isDisliked) "Remove dislike" else "Dislike exercise",
-                            tint = if (isDisliked) androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f) else androidx.compose.material3.MaterialTheme.colorScheme.onSurface
+                            tint = if (isDisliked) androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f) else androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.size(32.dp)
                         )
-                    }
-                    IconButton(onClick = onCloseClick) {
-                        Icon(Icons.Default.Close, contentDescription = "Close")
                     }
                 }
             }
+
+            AsyncImage(
+                model = gifSourceResolver.modelFor(exercise.gifPath),
+                contentDescription = "${exercise.name} exercise GIF",
+                contentScale = ContentScale.Fit,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 220.dp, max = 360.dp)
+                    .aspectRatio(1f)
+                    .clickable(onClick = onGifClick)
+            )
 
             // Details
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {

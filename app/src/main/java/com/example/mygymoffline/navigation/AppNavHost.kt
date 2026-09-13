@@ -1,6 +1,7 @@
 package com.example.mygymoffline.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -8,6 +9,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.platform.LocalContext
+import androidx.activity.compose.BackHandler
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
 import com.example.mygymoffline.data.repository.ExerciseRepository
@@ -28,16 +30,21 @@ sealed interface Destination {
 }
 
 class NavController {
-    private val _currentDestination = mutableStateOf<Destination>(Destination.Main)
+    private val backStack = mutableStateListOf<Destination>(Destination.Main)
+
     val currentDestination: Destination
-        @Composable get() = _currentDestination.value
+        get() = backStack.last()
 
     fun navigate(destination: Destination) {
-        _currentDestination.value = destination
+        if (backStack.lastOrNull() != destination) {
+            backStack.add(destination)
+        }
     }
 
-    fun popBackStack() {
-        _currentDestination.value = Destination.Main
+    fun popBackStack(): Boolean {
+        if (backStack.size <= 1) return false
+        backStack.removeAt(backStack.lastIndex)
+        return true
     }
 }
 
@@ -62,6 +69,10 @@ fun AppNavHost(
     }
     val gifSourceResolver = remember(gifOverrides) {
         GifSourceResolver(gifOverrides)
+    }
+
+    BackHandler(enabled = destination != Destination.Main) {
+        navController.popBackStack()
     }
 
     when (destination) {
@@ -91,6 +102,8 @@ fun AppNavHost(
                     exercise = ex,
                     repository = repository,
                     selectedLanguage = "en",
+                    gifSourceResolver = gifSourceResolver,
+                    onGifClick = { navController.navigate(Destination.FullscreenGif(ex.id)) },
                     onCloseClick = { navController.popBackStack() }
                 )
             }

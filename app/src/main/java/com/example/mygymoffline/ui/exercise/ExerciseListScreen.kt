@@ -139,10 +139,6 @@ fun ExerciseListScreen(
                             onDislikeClick = {
                                 coroutineScope.launch { repository.toggleDislike(exercise.id) }
                                 Telemetry.trackEvent("dislike_toggle", "ExerciseList:$category", mapOf("exercise_id" to exercise.id, "is_disliked" to !exercise.isDisliked))
-                            },
-                            onGifClick = {
-                                Telemetry.trackEvent("gif_click", "ExerciseList:$category", mapOf("exercise_id" to exercise.id))
-                                navController.navigate(Destination.FullscreenGif(exercise.id))
                             }
                         )
                     }
@@ -159,7 +155,6 @@ fun ExerciseCard(
     onClick: () -> Unit,
     onFavoriteClick: () -> Unit,
     onDislikeClick: () -> Unit,
-    onGifClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -227,7 +222,7 @@ fun ExerciseCard(
                             imageVector = if (exercise.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                             contentDescription = if (exercise.isFavorite) "Remove from favorites" else "Add to favorites",
                             tint = if (exercise.isFavorite) Color.Red else Color.White,
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier.size(30.dp)
                         )
                     }
                     IconButton(onClick = onDislikeClick) {
@@ -235,18 +230,11 @@ fun ExerciseCard(
                             imageVector = if (exercise.isDisliked) Icons.Default.ThumbDown else Icons.Default.ThumbDownOffAlt,
                             contentDescription = if (exercise.isDisliked) "Remove dislike" else "Dislike exercise",
                             tint = if (exercise.isDisliked) Color.White.copy(alpha = 0.7f) else Color.White,
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier.size(30.dp)
                         )
                     }
                 }
             }
-
-            // Invisible clickable area for GIF click (whole card)
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .clickable { onGifClick() },
-            )
         }
     }
 }

@@ -18,7 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.ThumbDown
@@ -77,7 +77,7 @@ fun FullscreenGifScreen(
             ),
             navigationIcon = {
                 androidx.compose.material3.IconButton(onClick = onCloseClick) {
-                    Icon(Icons.Default.Close, contentDescription = "Close", tint = Color.White)
+                    Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
                 }
             },
             actions = {
@@ -89,7 +89,8 @@ fun FullscreenGifScreen(
                     Icon(
                         imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                         contentDescription = if (isFavorite) "Remove from favorites" else "Add to favorites",
-                        tint = if (isFavorite) Color.Red else Color.White
+                        tint = if (isFavorite) Color.Red else Color.White,
+                        modifier = Modifier.size(30.dp)
                     )
                 }
                 androidx.compose.material3.IconButton(onClick = {
@@ -100,7 +101,8 @@ fun FullscreenGifScreen(
                     Icon(
                         imageVector = if (isDisliked) Icons.Default.ThumbDown else Icons.Default.ThumbDownOffAlt,
                         contentDescription = if (isDisliked) "Remove dislike" else "Dislike exercise",
-                        tint = if (isDisliked) Color.White.copy(alpha = 0.7f) else Color.White
+                        tint = if (isDisliked) Color.White.copy(alpha = 0.7f) else Color.White,
+                        modifier = Modifier.size(32.dp)
                     )
                 }
             }
