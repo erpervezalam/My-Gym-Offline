@@ -35,6 +35,9 @@ class SettingsDataStore(private val prefs: SharedPreferences) {
     private val _autoPlayGif = MutableStateFlow(prefs.getBoolean("auto_play_gif", true))
     val autoPlayGifFlow: Flow<Boolean> = _autoPlayGif
 
+    private val _darkMode = MutableStateFlow(prefs.getBoolean("dark_mode", false))
+    val darkModeFlow: Flow<Boolean> = _darkMode
+
     private val _favoritesOnly = MutableStateFlow(prefs.getBoolean("favorites_only", false))
     val favoritesOnlyFlow: Flow<Boolean> = _favoritesOnly
 
@@ -80,6 +83,11 @@ class SettingsDataStore(private val prefs: SharedPreferences) {
     suspend fun setAutoPlayGif(enabled: Boolean) {
         prefs.edit().putBoolean("auto_play_gif", enabled).apply()
         _autoPlayGif.value = enabled
+    }
+
+    suspend fun setDarkMode(enabled: Boolean) {
+        prefs.edit().putBoolean("dark_mode", enabled).apply()
+        _darkMode.value = enabled
     }
 
     suspend fun setFavoritesOnly(enabled: Boolean) {

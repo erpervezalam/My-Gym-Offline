@@ -45,11 +45,13 @@ fun MainScreen(
     val initializationState by repository.initializationState.collectAsStateWithLifecycle()
     val categories by repository.getAllCategories().collectAsStateWithLifecycle(initialValue = emptyList())
     val categoryCounts by repository.getCategoryCounts().collectAsStateWithLifecycle(initialValue = emptyList())
+    val categoryPreviews by repository.getCategoryPreviews().collectAsStateWithLifecycle(initialValue = emptyList())
     val isGridMode by settings.gridModeFlow.collectAsStateWithLifecycle(initialValue = SettingsDataStore.DEFAULT_GRID_MODE)
     val showFavoritesOnly by settings.favoritesOnlyFlow.collectAsStateWithLifecycle(
         initialValue = SettingsDataStore.DEFAULT_FAVORITES_ONLY
     )
     val countsByCategory = categoryCounts.associate { it.category to it.count }
+    val previewsByCategory = categoryPreviews.associate { it.category to it.gifPath }
     val coroutineScope = rememberCoroutineScope()
 
     Box(modifier = Modifier.fillMaxSize()) {
@@ -88,7 +90,7 @@ fun MainScreen(
                         BodyPartCard(
                             name = category.capitalize(),
                             exerciseCount = countsByCategory[category] ?: 0,
-                            thumbnailPath = null,
+                            thumbnailPath = previewsByCategory[category],
                             onClick = {
                                 Telemetry.trackScreenView("ExerciseList:$category")
                                 navController.navigate(Destination.ExerciseList(category))

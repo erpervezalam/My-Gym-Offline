@@ -70,6 +70,7 @@ fun SettingsScreen(
     val enabledEquipment by settings.enabledEquipmentFlow.collectAsStateWithLifecycle(initialValue = emptySet())
     val gridMode by settings.gridModeFlow.collectAsStateWithLifecycle(initialValue = true)
     val autoPlayGif by settings.autoPlayGifFlow.collectAsStateWithLifecycle(initialValue = true)
+    val darkMode by settings.darkModeFlow.collectAsStateWithLifecycle(initialValue = false)
     val customGifDirectoryUri by settings.customGifDirectoryUriFlow.collectAsStateWithLifecycle(initialValue = null)
 
     var expandedLanguage by remember { mutableStateOf(false) }
@@ -204,6 +205,12 @@ fun SettingsScreen(
         item {
             SettingsSection(title = "Display") {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    SettingsToggle(
+                        title = "Dark Mode",
+                        subtitle = "Use a darker color scheme",
+                        checked = darkMode,
+                        onCheckedChange = { coroutineScope.launch { settings.setDarkMode(it) } }
+                    )
                     SettingsToggle(
                         title = "Grid View",
                         subtitle = "Show body parts as grid (off = list)",

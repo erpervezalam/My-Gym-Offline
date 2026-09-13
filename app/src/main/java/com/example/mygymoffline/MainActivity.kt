@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Modifier
 import com.example.mygymoffline.data.prefs.SettingsDataStore
 import com.example.mygymoffline.data.repository.ExerciseRepository
@@ -22,7 +24,8 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         val app = application as MyGymApplication
         setContent {
-            MyGymOfflineTheme {
+            val darkMode by app.settingsDataStore.darkModeFlow.collectAsStateWithLifecycle(initialValue = false)
+            MyGymOfflineTheme(darkTheme = darkMode, dynamicColor = false) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background

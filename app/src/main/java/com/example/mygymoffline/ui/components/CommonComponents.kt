@@ -97,47 +97,28 @@ fun BodyPartCard(
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .height(180.dp)
+            .height(if (thumbnailPath == null) 96.dp else 220.dp)
             .padding(16.dp),
         onClick = onClick,
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
         )
     ) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            // Background thumbnail/GIF
+        Column(modifier = Modifier.fillMaxSize()) {
+            // Keep text outside the preview so it remains readable on every frame.
             thumbnailPath?.let { path ->
                 AsyncImage(
-                    model = path,
-                    contentDescription = null,
+                    model = GifSourceResolver.bundledAssetUri(path),
+                    contentDescription = "$name exercise preview",
                     contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(112.dp)
                 )
             }
-            // Overlay with name and count
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp)
-                    .background(Color.Black.copy(alpha = 0.5f)),
-                contentAlignment = Alignment.BottomStart
-            ) {
-                Column {
-                    Text(
-                        text = name,
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
-                    Text(
-                        text = "$exerciseCount exercises",
-                        fontSize = 14.sp,
-                        color = Color.White.copy(alpha = 0.8f)
-                    )
-                }
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(text = name, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                Text(text = "$exerciseCount exercises", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }

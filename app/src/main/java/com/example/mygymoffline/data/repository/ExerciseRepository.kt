@@ -4,6 +4,7 @@ import android.content.Context
 import com.example.mygymoffline.data.db.Exercise
 import com.example.mygymoffline.data.db.ExerciseDao
 import com.example.mygymoffline.data.db.CategoryCount
+import com.example.mygymoffline.data.db.CategoryPreview
 import com.example.mygymoffline.data.db.ExerciseDatabase
 import com.example.mygymoffline.data.loader.ExerciseJsonLoader
 import com.example.mygymoffline.data.prefs.SettingsDataStore
@@ -80,6 +81,7 @@ class ExerciseRepository(
     fun getAllCategories(): Flow<List<String>> = dao.getAllCategories()
 
     fun getCategoryCounts(): Flow<List<CategoryCount>> = dao.getCategoryCounts()
+    fun getCategoryPreviews(): Flow<List<CategoryPreview>> = dao.getCategoryPreviews()
 
     fun getAllEquipment(): Flow<List<String>> = dao.getAllEquipment()
 

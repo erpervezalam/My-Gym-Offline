@@ -19,6 +19,7 @@ class SettingsDataStoreInstrumentedTest {
     fun resetDisplayPreferences() = runBlocking {
         SettingsDataStore.create(context).setGridMode(SettingsDataStore.DEFAULT_GRID_MODE)
         SettingsDataStore.create(context).setAutoPlayGif(SettingsDataStore.DEFAULT_AUTO_PLAY_GIF)
+        SettingsDataStore.create(context).setDarkMode(false)
     }
 
     @Test
@@ -35,9 +36,11 @@ class SettingsDataStoreInstrumentedTest {
 
         settings.setGridMode(false)
         settings.setAutoPlayGif(false)
+        settings.setDarkMode(true)
 
         val reloadedSettings = SettingsDataStore.create(context)
         assertFalse(reloadedSettings.gridModeFlow.first())
         assertFalse(reloadedSettings.autoPlayGifFlow.first())
+        assertTrue(reloadedSettings.darkModeFlow.first())
     }
 }

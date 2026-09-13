@@ -12,6 +12,8 @@ data class CategoryCount(
     val count: Int
 )
 
+data class CategoryPreview(val category: String, val gifPath: String)
+
 @Dao
 interface ExerciseDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
@@ -46,6 +48,9 @@ interface ExerciseDao {
 
     @Query("SELECT category, COUNT(*) AS count FROM exercises GROUP BY category ORDER BY category ASC")
     fun getCategoryCounts(): Flow<List<CategoryCount>>
+
+    @Query("SELECT category, MIN(gifPath) AS gifPath FROM exercises GROUP BY category ORDER BY category ASC")
+    fun getCategoryPreviews(): Flow<List<CategoryPreview>>
 
     @Query("SELECT DISTINCT equipment FROM exercises ORDER BY equipment ASC")
     fun getAllEquipment(): Flow<List<String>>
