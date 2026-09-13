@@ -7,6 +7,17 @@ import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 
+enum class ThemeMode(val preferenceValue: String) {
+    SYSTEM("system"),
+    LIGHT("light"),
+    DARK("dark");
+
+    companion object {
+        fun fromPreference(value: String?): ThemeMode =
+            entries.firstOrNull { it.preferenceValue == value } ?: SYSTEM
+    }
+}
+
 class SettingsDataStore(private val prefs: SharedPreferences) {
 
     private val gson = Gson()
@@ -35,8 +46,19 @@ class SettingsDataStore(private val prefs: SharedPreferences) {
     private val _autoPlayGif = MutableStateFlow(prefs.getBoolean("auto_play_gif", true))
     val autoPlayGifFlow: Flow<Boolean> = _autoPlayGif
 
-    private val _darkMode = MutableStateFlow(prefs.getBoolean("dark_mode", false))
-    val darkModeFlow: Flow<Boolean> = _darkMode
+    private val _themeMode = MutableStateFlow(
+        when {
+            prefs.contains(THEME_MODE_KEY) -> ThemeMode.fromPreference(
+                prefs.getString(THEME_MODE_KEY, null)
+            )
+            // Keep an existing installation's explicit light/dark choice during migration.
+            prefs.contains(LEGACY_DARK_MODE_KEY) -> if (
+                prefs.getBoolean(LEGACY_DARK_MODE_KEY, false)
+            ) ThemeMode.DARK else ThemeMode.LIGHT
+            else -> ThemeMode.SYSTEM
+        }
+    )
+    val themeModeFlow: Flow<ThemeMode> = _themeMode
 
     private val _favoritesOnly = MutableStateFlow(prefs.getBoolean("favorites_only", false))
     val favoritesOnlyFlow: Flow<Boolean> = _favoritesOnly
@@ -49,6 +71,10 @@ class SettingsDataStore(private val prefs: SharedPreferences) {
         const val DEFAULT_GRID_MODE = true
         const val DEFAULT_AUTO_PLAY_GIF = true
         const val DEFAULT_FAVORITES_ONLY = false
+        const val DEFAULT_THEME_MODE = "system"
+
+        private const val THEME_MODE_KEY = "theme_mode"
+        private const val LEGACY_DARK_MODE_KEY = "dark_mode"
 
         fun create(context: Context): SettingsDataStore {
             val prefs = context.getSharedPreferences("my_gym_offline_settings", Context.MODE_PRIVATE)
@@ -85,9 +111,13 @@ class SettingsDataStore(private val prefs: SharedPreferences) {
         _autoPlayGif.value = enabled
     }
 
-    suspend fun setDarkMode(enabled: Boolean) {
-        prefs.edit().putBoolean("dark_mode", enabled).apply()
-        _darkMode.value = enabled
+    suspend fun setThemeMode(mode: ThemeMode) {
+        prefs.edit()
+            .putString(THEME_MODE_KEY, mode.preferenceValue)
+            // Retain this value for versions that only understand the legacy preference.
+            .putBoolean(LEGACY_DARK_MODE_KEY, mode == ThemeMode.DARK)
+            .apply()
+        _themeMode.value = mode
     }
 
     suspend fun setFavoritesOnly(enabled: Boolean) {

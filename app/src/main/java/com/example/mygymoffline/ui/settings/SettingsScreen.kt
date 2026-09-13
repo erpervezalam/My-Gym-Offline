@@ -59,6 +59,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.mygymoffline.R
 import com.example.mygymoffline.data.prefs.SettingsDataStore
+import com.example.mygymoffline.data.prefs.ThemeMode
 import com.example.mygymoffline.util.AppLogger
 import com.example.mygymoffline.util.Telemetry
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -74,10 +75,11 @@ fun SettingsScreen(
     val enabledEquipment by settings.enabledEquipmentFlow.collectAsStateWithLifecycle(initialValue = emptySet())
     val gridMode by settings.gridModeFlow.collectAsStateWithLifecycle(initialValue = true)
     val autoPlayGif by settings.autoPlayGifFlow.collectAsStateWithLifecycle(initialValue = true)
-    val darkMode by settings.darkModeFlow.collectAsStateWithLifecycle(initialValue = false)
+    val themeMode by settings.themeModeFlow.collectAsStateWithLifecycle(initialValue = ThemeMode.SYSTEM)
     val customGifDirectoryUri by settings.customGifDirectoryUriFlow.collectAsStateWithLifecycle(initialValue = null)
 
     var expandedLanguage by remember { mutableStateOf(false) }
+    var expandedThemeMode by remember { mutableStateOf(false) }
     var expandedDebug by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -211,10 +213,30 @@ fun SettingsScreen(
         item {
             SettingsSection(title = "Display") {
                 Column(verticalArrangement = Arrangement.spacedBy(0.dp)) {
-                    SettingsToggle(
-                        title = "Dark Mode",
-                        checked = darkMode,
-                        onCheckedChange = { coroutineScope.launch { settings.setDarkMode(it) } }
+                    SettingsRow(
+                        title = "Appearance",
+                        trailing = {
+                            Box {
+                                TextButton(onClick = { expandedThemeMode = true }) {
+                                    Text(themeMode.displayName)
+                                    Icon(Icons.Default.ArrowDropDown, contentDescription = "Choose appearance")
+                                }
+                                DropdownMenu(
+                                    expanded = expandedThemeMode,
+                                    onDismissRequest = { expandedThemeMode = false }
+                                ) {
+                                    ThemeMode.entries.forEach { mode ->
+                                        DropdownMenuItem(
+                                            text = { Text(mode.displayName) },
+                                            onClick = {
+                                                expandedThemeMode = false
+                                                coroutineScope.launch { settings.setThemeMode(mode) }
+                                            }
+                                        )
+                                    }
+                                }
+                            }
+                        }
                     )
                     SettingsToggle(
                         title = "Grid Layout",
@@ -402,6 +424,13 @@ internal object SettingsCatalog {
         "ko" to "한국어", "fr" to "Français"
     )
 }
+
+private val ThemeMode.displayName: String
+    get() = when (this) {
+        ThemeMode.SYSTEM -> "System default"
+        ThemeMode.LIGHT -> "Light"
+        ThemeMode.DARK -> "Dark"
+    }
 
 private fun shareLogs() {
     // Implementation would use Intent.ACTION_SEND with log files

@@ -5,6 +5,7 @@ import androidx.test.core.app.ApplicationProvider
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -19,7 +20,7 @@ class SettingsDataStoreInstrumentedTest {
     fun resetDisplayPreferences() = runBlocking {
         SettingsDataStore.create(context).setGridMode(SettingsDataStore.DEFAULT_GRID_MODE)
         SettingsDataStore.create(context).setAutoPlayGif(SettingsDataStore.DEFAULT_AUTO_PLAY_GIF)
-        SettingsDataStore.create(context).setDarkMode(false)
+        SettingsDataStore.create(context).setThemeMode(ThemeMode.SYSTEM)
     }
 
     @Test
@@ -36,11 +37,11 @@ class SettingsDataStoreInstrumentedTest {
 
         settings.setGridMode(false)
         settings.setAutoPlayGif(false)
-        settings.setDarkMode(true)
+        settings.setThemeMode(ThemeMode.DARK)
 
         val reloadedSettings = SettingsDataStore.create(context)
         assertFalse(reloadedSettings.gridModeFlow.first())
         assertFalse(reloadedSettings.autoPlayGifFlow.first())
-        assertTrue(reloadedSettings.darkModeFlow.first())
+        assertEquals(ThemeMode.DARK, reloadedSettings.themeModeFlow.first())
     }
 }
