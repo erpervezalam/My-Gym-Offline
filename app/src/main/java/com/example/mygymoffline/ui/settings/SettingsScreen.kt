@@ -10,26 +10,25 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Delete
@@ -39,6 +38,7 @@ import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -107,13 +107,9 @@ fun SettingsScreen(
         }
     }
 
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = androidx.compose.foundation.layout.PaddingValues(12.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        // Header
-        item {
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.surface,
+        topBar = {
             TopAppBar(
                 modifier = Modifier.fillMaxWidth(),
                 title = { Text(text = stringResource(R.string.settings_title), fontWeight = FontWeight.Bold) },
@@ -122,11 +118,17 @@ fun SettingsScreen(
                 ),
                 navigationIcon = {
                     androidx.compose.material3.IconButton(onClick = onBackClick) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 }
             )
         }
+    ) { contentPadding ->
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().padding(contentPadding),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
 
         item {
             Card(
@@ -181,18 +183,24 @@ fun SettingsScreen(
                         }) { Text("Clear", fontSize = 14.sp) }
                     }
                     FlowRow(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         SettingsDataStore.getDefaultEquipmentSet().sorted().forEach { equipment ->
                             FilterChip(
+                                modifier = Modifier.height(32.dp),
                                 selected = equipment in enabledEquipment,
                                 onClick = {
                                     val newSet = enabledEquipment.toMutableSet()
                                     if (equipment in newSet) newSet.remove(equipment) else newSet.add(equipment)
                                     coroutineScope.launch { settings.setEnabledEquipment(newSet) }
                                 },
-                                label = { Text(equipment.replaceFirstChar { it.uppercase() }) }
+                                label = {
+                                    Text(
+                                        text = equipment.replaceFirstChar { it.uppercase() },
+                                        fontSize = 14.sp
+                                    )
+                                }
                             )
                         }
                     }
@@ -200,26 +208,22 @@ fun SettingsScreen(
             }
         }
 
-        // Display Section
         item {
             SettingsSection(title = "Display") {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(0.dp)) {
                     SettingsToggle(
                         title = "Dark Mode",
-                        subtitle = "Use a darker color scheme",
                         checked = darkMode,
                         onCheckedChange = { coroutineScope.launch { settings.setDarkMode(it) } }
                     )
                     SettingsToggle(
-                        title = "Grid View",
-                        subtitle = "Show body parts as grid (off = list)",
+                        title = "Grid Layout",
                         checked = gridMode,
                         modifier = Modifier.testTag("grid-mode-toggle"),
                         onCheckedChange = { coroutineScope.launch { settings.setGridMode(it) } }
                     )
                     SettingsToggle(
                         title = "Auto-play GIFs",
-                        subtitle = "Automatically play animated GIFs in lists",
                         checked = autoPlayGif,
                         onCheckedChange = { coroutineScope.launch { settings.setAutoPlayGif(it) } }
                     )
@@ -227,22 +231,18 @@ fun SettingsScreen(
             }
         }
 
-        // Exercise media section
         item {
-            SettingsSection(
-                title = "Exercise Media",
-                subtitle = "Bundled GIFs work offline. A selected folder can override matching filenames."
-            ) {
+            SettingsSection(title = "GIF Library") {
                 SettingsRow(
-                    title = "High-resolution GIF folder",
+                    title = "GIF Folder",
                     subtitle = if (customGifDirectoryUri == null) {
-                        "Using bundled animations"
+                        "Bundled animations"
                     } else {
-                        "Custom folder selected; missing files use bundled animations"
+                        "Custom folder selected"
                     },
                     trailing = {
                         TextButton(onClick = { gifDirectoryPicker.launch(null) }) {
-                            Text(if (customGifDirectoryUri == null) "Choose Folder" else "Change")
+                            Text(if (customGifDirectoryUri == null) "Choose" else "Change")
                         }
                     }
                 )
@@ -282,7 +282,7 @@ fun SettingsScreen(
                         )
                     }
                     if (expandedDebug) {
-                        Divider(color = MaterialTheme.colorScheme.outlineVariant)
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                         Column(
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
                             verticalArrangement = Arrangement.spacedBy(4.dp)
@@ -314,15 +314,15 @@ fun SettingsScreen(
             }
         }
 
-        // About Section
         item {
             SettingsSection(title = "About") {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    SettingsRow(title = "Version", subtitle = "1.0.0")
-                    SettingsRow(title = "Data provider", subtitle = "Exercise data and media provided by Gym Visual")
-                    SettingsRow(title = "License", subtitle = "MIT + Gym Visual media terms")
+                Column(verticalArrangement = Arrangement.spacedBy(0.dp)) {
+                    SettingsRow(title = "Version", trailing = { Text("1.0.0", color = MaterialTheme.colorScheme.onSurfaceVariant) })
+                    SettingsRow(title = "Exercise Data", trailing = { Text("Gym Visual", color = MaterialTheme.colorScheme.onSurfaceVariant) })
+                    SettingsRow(title = "License", trailing = { Text("MIT", color = MaterialTheme.colorScheme.onSurfaceVariant) })
                 }
             }
+        }
         }
     }
 }
@@ -345,7 +345,7 @@ fun SettingsSection(
         ) {
             Text(text = title, fontSize = 18.sp, fontWeight = FontWeight.Bold)
             subtitle?.let { Text(text = it, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant) }
-            Divider(color = MaterialTheme.colorScheme.outlineVariant)
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             content()
         }
     }
@@ -362,7 +362,7 @@ fun SettingsRow(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Column {
+        Column(modifier = Modifier.weight(1f)) {
             Text(title, fontSize = 16.sp)
             subtitle?.let { Text(it, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant) }
         }
@@ -383,7 +383,7 @@ fun SettingsToggle(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Column {
+        Column(modifier = Modifier.weight(1f)) {
             Text(title, fontSize = 16.sp)
             subtitle?.let { Text(it, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant) }
         }
