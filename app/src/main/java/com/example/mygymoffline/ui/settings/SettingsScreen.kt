@@ -58,6 +58,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.mygymoffline.BuildConfig
 import com.example.mygymoffline.R
 import com.example.mygymoffline.data.prefs.SettingsDataStore
 import com.example.mygymoffline.data.prefs.ThemeMode
@@ -377,7 +378,15 @@ fun SettingsScreen(
         item {
             SettingsSection(title = "About") {
                 Column(verticalArrangement = Arrangement.spacedBy(0.dp)) {
-                    SettingsRow(title = "Version", trailing = { Text("1.0.0", color = MaterialTheme.colorScheme.onSurfaceVariant) })
+                    SettingsRow(
+                        title = "Version",
+                        trailing = {
+                            Text(
+                                BuildConfig.VERSION_NAME,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    )
                     SettingsRow(title = "Exercise Data", trailing = { Text("Gym Visual", color = MaterialTheme.colorScheme.onSurfaceVariant) })
                     SettingsRow(title = "License", trailing = { Text("MIT", color = MaterialTheme.colorScheme.onSurfaceVariant) })
                 }

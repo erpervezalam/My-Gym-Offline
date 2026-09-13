@@ -11,8 +11,8 @@ android {
         applicationId = "com.example.mygymoffline"
         minSdk = 24
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 5
+        versionName = "0.5.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -33,6 +33,7 @@ android {
         kotlinCompilerExtensionVersion = "1.5.14"
     }
     buildFeatures {
+        buildConfig = true
         compose = true
     }
 
