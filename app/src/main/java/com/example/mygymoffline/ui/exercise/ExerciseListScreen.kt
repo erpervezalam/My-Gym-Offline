@@ -220,14 +220,17 @@ fun ExerciseCard(
                     modifier = Modifier
                         .align(Alignment.TopStart)
                         .padding(5.dp)
-                        .background(Color.DarkGray.copy(alpha = 0.68f), RoundedCornerShape(9.dp)),
+                        .background(
+                            MaterialTheme.colorScheme.scrim.copy(alpha = 0.68f),
+                            RoundedCornerShape(9.dp)
+                        ),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     IconButton(onClick = onFavoriteClick, modifier = Modifier.size(20.dp)) {
                         Icon(
                             imageVector = if (exercise.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                             contentDescription = if (exercise.isFavorite) "Remove from favorites" else "Add to favorites",
-                            tint = if (exercise.isFavorite) Color.Red else Color.White,
+                            tint = if (exercise.isFavorite) MaterialTheme.colorScheme.error else Color.White,
                             modifier = Modifier.size(10.dp)
                         )
                     }
