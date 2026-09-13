@@ -15,10 +15,10 @@ import coil.compose.AsyncImage
 @Composable
 fun ExerciseGif(
     model: Any,
-    fallbackModel: Any? = null,
     contentDescription: String,
     autoPlay: Boolean,
     modifier: Modifier = Modifier,
+    fallbackModel: Any? = null,
     contentScale: ContentScale = ContentScale.Crop
 ) {
     var modelToLoad by remember(model, fallbackModel) { mutableStateOf(model) }

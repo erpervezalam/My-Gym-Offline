@@ -433,10 +433,10 @@ fun SettingsRow(
 @Composable
 fun SettingsToggle(
     title: String,
-    subtitle: String? = null,
     checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
-    onCheckedChange: (Boolean) -> Unit
+    subtitle: String? = null
 ) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),

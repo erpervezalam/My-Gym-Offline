@@ -1,7 +1,5 @@
 package com.example.mygymoffline.ui.components
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,22 +26,17 @@ import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.ThumbDown
-import androidx.compose.material.icons.filled.ThumbDownOffAlt
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
-import com.example.mygymoffline.R
 import com.example.mygymoffline.ui.media.GifSourceResolver
 
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
@@ -99,9 +92,9 @@ fun BodyPartCard(
     name: String,
     exerciseCount: Int,
     thumbnailPath: String?,
-    compactList: Boolean = false,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    compactList: Boolean = false
 ) {
     Card(
         modifier = modifier
@@ -171,111 +164,10 @@ private fun CategoryText(name: String, exerciseCount: Int, modifier: Modifier = 
 }
 
 @Composable
-fun ExerciseCard(
-    exercise: com.example.mygymoffline.data.db.Exercise,
-    onClick: () -> Unit,
-    onFavoriteClick: () -> Unit,
-    onDislikeClick: () -> Unit,
-    onGifClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        onClick = onClick,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
-        )
-    ) {
-        Row(
-            modifier = Modifier.padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // GIF Thumbnail
-            Box(
-                modifier = Modifier
-                    .size(100.dp)
-                    .clip(RoundedCornerShape(8.dp))
-            ) {
-                AsyncImage(
-                    model = GifSourceResolver.bundledAssetUri(exercise.gifPath),
-                    contentDescription = "Exercise GIF",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .fillMaxWidth()
-                        .clickable { onGifClick() }
-                )
-            }
-
-            // Exercise Info
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(start = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Text(
-                    text = exercise.name,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    // Equipment badge using Text with background
-                    Box(
-                        modifier = Modifier
-                            .height(24.dp)
-                            .padding(horizontal = 8.dp)
-                            .background(MaterialTheme.colorScheme.secondaryContainer, RoundedCornerShape(12.dp))
-                            .padding(vertical = 4.dp)
-                    ) {
-                        Text(
-                            text = exercise.equipment,
-                            fontSize = 10.sp,
-                            color = MaterialTheme.colorScheme.onSecondaryContainer
-                        )
-                    }
-                    Text(
-                        text = exercise.target,
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-
-            // Favorite and Dislike Buttons
-            Column(
-                modifier = Modifier.padding(start = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                IconButton(onClick = onFavoriteClick) {
-                    Icon(
-                        imageVector = if (exercise.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                        contentDescription = if (exercise.isFavorite) "Remove from favorites" else "Add to favorites",
-                        tint = if (exercise.isFavorite) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                IconButton(onClick = onDislikeClick) {
-                    Icon(
-                        imageVector = if (exercise.isDisliked) Icons.Default.ThumbDown else Icons.Default.ThumbDownOffAlt,
-                        contentDescription = if (exercise.isDisliked) "Remove dislike" else "Dislike exercise",
-                        tint = if (exercise.isDisliked) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f) else MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
 fun EmptyState(
     message: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector = Icons.Default.Search,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    icon: androidx.compose.ui.graphics.vector.ImageVector = Icons.Default.Search
 ) {
     Box(
         modifier = modifier.fillMaxSize(),

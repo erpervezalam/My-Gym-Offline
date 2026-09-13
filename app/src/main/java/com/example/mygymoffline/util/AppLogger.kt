@@ -109,9 +109,9 @@ object AppLogger {
     private class FileLoggingTree : Timber.Tree() {
         private val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault())
 
-        override fun log(priority: Int, tag: String?, message: String, throwable: Throwable?) {
+        override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {
             if (priority < Log.INFO) return
-            val logMessage = buildMessage(priority, tag, message, throwable)
+            val logMessage = buildMessage(priority, tag, message, t)
             writeToFile(logFile, logMessage)
         }
 
