@@ -3,6 +3,7 @@ package com.example.mygymoffline.data.repository
 import android.content.Context
 import com.example.mygymoffline.data.db.Exercise
 import com.example.mygymoffline.data.db.ExerciseDao
+import com.example.mygymoffline.data.db.CategoryCount
 import com.example.mygymoffline.data.db.ExerciseDatabase
 import com.example.mygymoffline.data.loader.ExerciseJsonLoader
 import com.example.mygymoffline.data.prefs.SettingsDataStore
@@ -14,6 +15,8 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 class ExerciseRepository(
@@ -24,9 +27,14 @@ class ExerciseRepository(
     private val scope: CoroutineScope
 ) {
 
+    enum class InitializationState { Loading, Ready, Failed }
+
     companion object {
         private const val PREFS_INITIALIZED = "exercises_pre_populated"
     }
+
+    private val _initializationState = MutableStateFlow(InitializationState.Loading)
+    val initializationState: StateFlow<InitializationState> = _initializationState
 
     suspend fun initialize() {
         AppLogger.i("ExerciseRepository", "Initializing repository")
@@ -40,11 +48,14 @@ class ExerciseRepository(
                 dao.insertAll(exercises)
                 AppLogger.i("ExerciseRepository", "Inserted ${exercises.size} exercises into database")
                 prefs.edit().putBoolean(PREFS_INITIALIZED, true).apply()
+                _initializationState.value = InitializationState.Ready
             }.onFailure { e ->
                 AppLogger.e("ExerciseRepository", "Failed to pre-populate database", e)
+                _initializationState.value = InitializationState.Failed
             }
         } else {
             AppLogger.i("ExerciseRepository", "Database already initialized")
+            _initializationState.value = InitializationState.Ready
         }
     }
 
@@ -67,6 +78,8 @@ class ExerciseRepository(
     }
 
     fun getAllCategories(): Flow<List<String>> = dao.getAllCategories()
+
+    fun getCategoryCounts(): Flow<List<CategoryCount>> = dao.getCategoryCounts()
 
     fun getAllEquipment(): Flow<List<String>> = dao.getAllEquipment()
 

@@ -6,7 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
@@ -43,17 +43,10 @@ fun MainScreen(
     var isGridMode by remember { mutableStateOf(true) }
     var showFavoritesOnly by remember { mutableStateOf(false) }
 
+    val initializationState by repository.initializationState.collectAsStateWithLifecycle()
     val categories by repository.getAllCategories().collectAsStateWithLifecycle(initialValue = emptyList())
-    val favoriteCount by repository.getFavorites().collectAsStateWithLifecycle(initialValue = emptyList()).size
-
-    // Get representative exercise for each category for thumbnail
-    val categoryThumbnails = remember(categories) {
-        categories.associateWith { category ->
-            // In a real app, you'd query for a representative exercise
-            // For now, we'll use a placeholder - the first exercise in each category would be queried
-            null as String?
-        }
-    }
+    val categoryCounts by repository.getCategoryCounts().collectAsStateWithLifecycle(initialValue = emptyList())
+    val countsByCategory = categoryCounts.associate { it.category to it.count }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column {
@@ -66,7 +59,11 @@ fun MainScreen(
                 showFavoritesOnly = showFavoritesOnly
             )
 
-            if (categories.isEmpty()) {
+            if (initializationState == ExerciseRepository.InitializationState.Loading) {
+                EmptyState(message = "Loading exercise library...")
+            } else if (initializationState == ExerciseRepository.InitializationState.Failed) {
+                EmptyState(message = "Unable to load the exercise library")
+            } else if (categories.isEmpty()) {
                 EmptyState(message = "No categories found")
             } else if (isGridMode) {
                 LazyVerticalGrid(
@@ -77,11 +74,10 @@ fun MainScreen(
                     modifier = Modifier.fillMaxSize().padding(top = 8.dp)
                 ) {
                     items(categories) { category ->
-                        val count = categoryThumbnails[category]?.let { 0 } ?: 0 // Would query actual count
                         BodyPartCard(
                             name = category.capitalize(),
-                            exerciseCount = count,
-                            thumbnailPath = categoryThumbnails[category],
+                            exerciseCount = countsByCategory[category] ?: 0,
+                            thumbnailPath = null,
                             onClick = {
                                 Telemetry.trackScreenView("ExerciseList:$category")
                                 navController.navigate(Destination.ExerciseList(category))
@@ -98,8 +94,8 @@ fun MainScreen(
                     items(categories) { category ->
                         BodyPartCard(
                             name = category.capitalize(),
-                            exerciseCount = 0, // Would query actual count
-                            thumbnailPath = categoryThumbnails[category],
+                            exerciseCount = countsByCategory[category] ?: 0,
+                            thumbnailPath = null,
                             modifier = Modifier.fillMaxWidth(),
                             onClick = {
                                 Telemetry.trackScreenView("ExerciseList:$category")
