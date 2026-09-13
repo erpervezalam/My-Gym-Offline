@@ -180,26 +180,26 @@ fun ExerciseCard(
                 )
                 Row(
                     modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(6.dp)
-                        .background(Color.DarkGray.copy(alpha = 0.72f), RoundedCornerShape(18.dp))
-                        .padding(horizontal = 2.dp),
+                        .align(Alignment.TopStart)
+                        .padding(5.dp)
+                        .background(Color.DarkGray.copy(alpha = 0.68f), RoundedCornerShape(14.dp))
+                        .padding(horizontal = 1.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    IconButton(onClick = onFavoriteClick, modifier = Modifier.size(36.dp)) {
+                    IconButton(onClick = onFavoriteClick, modifier = Modifier.size(32.dp)) {
                         Icon(
                             imageVector = if (exercise.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                             contentDescription = if (exercise.isFavorite) "Remove from favorites" else "Add to favorites",
                             tint = if (exercise.isFavorite) Color.Red else Color.White,
-                            modifier = Modifier.size(20.dp)
+                            modifier = Modifier.size(17.dp)
                         )
                     }
-                    IconButton(onClick = onDislikeClick, modifier = Modifier.size(36.dp)) {
+                    IconButton(onClick = onDislikeClick, modifier = Modifier.size(32.dp)) {
                         Icon(
                             imageVector = if (exercise.isDisliked) Icons.Default.ThumbDown else Icons.Default.ThumbDownOffAlt,
                             contentDescription = if (exercise.isDisliked) "Remove dislike" else "Dislike exercise",
                             tint = Color.White,
-                            modifier = Modifier.size(20.dp)
+                            modifier = Modifier.size(17.dp)
                         )
                     }
                 }
