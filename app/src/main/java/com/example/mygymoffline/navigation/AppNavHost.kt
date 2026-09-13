@@ -15,7 +15,6 @@ import kotlinx.coroutines.launch
 import com.example.mygymoffline.data.repository.ExerciseRepository
 import com.example.mygymoffline.data.prefs.SettingsDataStore
 import com.example.mygymoffline.ui.detail.ExerciseDetailBottomSheet
-import com.example.mygymoffline.ui.detail.FullscreenGifScreen
 import com.example.mygymoffline.ui.exercise.ExerciseListScreen
 import com.example.mygymoffline.ui.main.MainScreen
 import com.example.mygymoffline.ui.media.GifSourceResolver
@@ -25,7 +24,6 @@ sealed interface Destination {
     data object Main : Destination
     data class ExerciseList(val category: String) : Destination
     data class ExerciseDetail(val exerciseId: String) : Destination
-    data class FullscreenGif(val exerciseId: String) : Destination
     data object Settings : Destination
 }
 
@@ -104,22 +102,7 @@ fun AppNavHost(
                     repository = repository,
                     selectedLanguage = "en",
                     gifSourceResolver = gifSourceResolver,
-                    onGifClick = { navController.navigate(Destination.FullscreenGif(ex.id)) },
                     onCloseClick = { navController.popBackStack() }
-                )
-            }
-        }
-        is Destination.FullscreenGif -> {
-            var exercise by remember { mutableStateOf<com.example.mygymoffline.data.db.Exercise?>(null) }
-            LaunchedEffect(destination.exerciseId) {
-                exercise = repository.getExerciseById(destination.exerciseId)
-            }
-            exercise?.let { ex ->
-                FullscreenGifScreen(
-                exercise = ex,
-                repository = repository,
-                gifSourceResolver = gifSourceResolver,
-                onCloseClick = { navController.popBackStack() }
                 )
             }
         }

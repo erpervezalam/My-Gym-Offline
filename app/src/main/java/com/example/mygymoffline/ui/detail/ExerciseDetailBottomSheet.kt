@@ -1,15 +1,16 @@
 package com.example.mygymoffline.ui.detail
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
@@ -54,7 +55,6 @@ fun ExerciseDetailBottomSheet(
     repository: ExerciseRepository,
     selectedLanguage: String,
     gifSourceResolver: GifSourceResolver,
-    onGifClick: () -> Unit,
     onCloseClick: () -> Unit
 ) {
     var isFavorite by remember { mutableStateOf(exercise.isFavorite) }
@@ -92,47 +92,52 @@ fun ExerciseDetailBottomSheet(
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth().height(56.dp).padding(horizontal = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
+            Column(
+                modifier = Modifier.fillMaxWidth().height(104.dp)
             ) {
-                IconButton(onClick = onCloseClick, modifier = Modifier.size(40.dp)) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                }
-                Text(
-                    text = exercise.name.replaceFirstChar { it.uppercase() },
-                    modifier = Modifier.weight(1f).padding(horizontal = 8.dp),
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+                Spacer(Modifier.height(32.dp))
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(2.dp)
+                    modifier = Modifier.fillMaxWidth().height(56.dp).padding(horizontal = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    IconButton(modifier = Modifier.size(40.dp), onClick = {
-                        isFavorite = !isFavorite
-                        coroutineScope.launch { repository.toggleFavorite(exercise.id) }
-                        Telemetry.trackEvent("favorite_toggle", "DetailBottomSheet", mapOf("exercise_id" to exercise.id, "is_favorite" to isFavorite))
-                    }) {
-                        Icon(
-                            imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                            contentDescription = if (isFavorite) "Remove from favorites" else "Add to favorites",
-                            tint = if (isFavorite) androidx.compose.material3.MaterialTheme.colorScheme.error else androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.size(20.dp)
-                        )
+                    IconButton(onClick = onCloseClick, modifier = Modifier.size(40.dp)) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
-                    IconButton(modifier = Modifier.size(40.dp), onClick = {
-                        isDisliked = !isDisliked
-                        coroutineScope.launch { repository.toggleDislike(exercise.id) }
-                        Telemetry.trackEvent("dislike_toggle", "DetailBottomSheet", mapOf("exercise_id" to exercise.id, "is_disliked" to isDisliked))
-                    }) {
-                        Icon(
-                            imageVector = if (isDisliked) Icons.Default.ThumbDown else Icons.Default.ThumbDownOffAlt,
-                            contentDescription = if (isDisliked) "Remove dislike" else "Dislike exercise",
-                            tint = if (isDisliked) androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f) else androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.size(20.dp)
-                        )
+                    Text(
+                        text = exercise.name.toTitleCase(),
+                        modifier = Modifier.weight(1f).padding(horizontal = 8.dp),
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(2.dp)
+                    ) {
+                        IconButton(modifier = Modifier.size(40.dp), onClick = {
+                            isFavorite = !isFavorite
+                            coroutineScope.launch { repository.toggleFavorite(exercise.id) }
+                            Telemetry.trackEvent("favorite_toggle", "DetailBottomSheet", mapOf("exercise_id" to exercise.id, "is_favorite" to isFavorite))
+                        }) {
+                            Icon(
+                                imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                                contentDescription = if (isFavorite) "Remove from favorites" else "Add to favorites",
+                                tint = if (isFavorite) androidx.compose.material3.MaterialTheme.colorScheme.error else androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                        IconButton(modifier = Modifier.size(40.dp), onClick = {
+                            isDisliked = !isDisliked
+                            coroutineScope.launch { repository.toggleDislike(exercise.id) }
+                            Telemetry.trackEvent("dislike_toggle", "DetailBottomSheet", mapOf("exercise_id" to exercise.id, "is_disliked" to isDisliked))
+                        }) {
+                            Icon(
+                                imageVector = if (isDisliked) Icons.Default.ThumbDown else Icons.Default.ThumbDownOffAlt,
+                                contentDescription = if (isDisliked) "Remove dislike" else "Dislike exercise",
+                                tint = if (isDisliked) androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f) else androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
                     }
                 }
             }
@@ -143,8 +148,8 @@ fun ExerciseDetailBottomSheet(
                 contentScale = ContentScale.Fit,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(200.dp)
-                    .clickable(onClick = onGifClick)
+                    .heightIn(min = 240.dp, max = 360.dp)
+                    .aspectRatio(1f)
             )
 
             Column(
@@ -222,3 +227,8 @@ private fun DetailRow(label: String, value: String) {
 
 private fun String.toDisplayText(): String =
     replaceFirstChar { it.uppercase() }
+
+private fun String.toTitleCase(): String =
+    trim().split(Regex("\\s+")).joinToString(" ") { word ->
+        word.lowercase().replaceFirstChar { it.titlecase() }
+    }
