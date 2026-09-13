@@ -27,7 +27,9 @@ android {
     }
     kotlinOptions {
         jvmTarget = "17"
-        freeCompilerArgs += listOf("-P", "plugin:androidx.compose.compiler.plugins.kotlin:suppressKotlinVersionCompatibilityCheck=true")
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.14"
     }
     buildFeatures {
         compose = true
@@ -62,6 +64,7 @@ dependencies {
     // DataStore
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.datastore.core)
+    implementation("androidx.documentfile:documentfile:1.0.1")
 
     // Coil (Image/GIF loading)
     implementation(libs.coil.compose)
@@ -80,6 +83,7 @@ dependencies {
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
+    implementation("androidx.compose.material:material-icons-extended")
     // Tooling
     debugImplementation(libs.androidx.compose.ui.tooling)
     // Instrumented tests
