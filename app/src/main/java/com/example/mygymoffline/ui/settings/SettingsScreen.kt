@@ -5,23 +5,22 @@ import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Divider
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -30,7 +29,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Download
@@ -43,6 +41,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.ui.Alignment
@@ -61,7 +60,7 @@ import com.example.mygymoffline.util.Telemetry
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
 
-@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun SettingsScreen(
     settings: SettingsDataStore,
@@ -73,7 +72,7 @@ fun SettingsScreen(
     val autoPlayGif by settings.autoPlayGifFlow.collectAsStateWithLifecycle(initialValue = true)
     val customGifDirectoryUri by settings.customGifDirectoryUriFlow.collectAsStateWithLifecycle(initialValue = null)
 
-    var expandedEquipment by remember { mutableStateOf(false) }
+    var expandedLanguage by remember { mutableStateOf(false) }
     var expandedDebug by remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -103,19 +102,6 @@ fun SettingsScreen(
         }
     }
 
-    val languages = listOf(
-        "en" to "English",
-        "es" to "Español",
-        "it" to "Italiano",
-        "tr" to "Türkçe",
-        "ru" to "Русский",
-        "zh" to "中文",
-        "hi" to "हिन्दी",
-        "pl" to "Polski",
-        "ko" to "한국어",
-        "fr" to "Français"
-    )
-
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
@@ -142,41 +128,34 @@ fun SettingsScreen(
             SettingsSection(title = "Language") {
                 ExposedDropdownMenuBox(
                     modifier = Modifier.fillMaxWidth(),
-                    expanded = false, // Would need state for full dropdown
-                    onExpandedChange = {}
+                    expanded = expandedLanguage,
+                    onExpandedChange = { expandedLanguage = !expandedLanguage }
                 ) {
                     androidx.compose.material3.TextField(
-                        modifier = Modifier.fillMaxWidth(),
-                        value = languages.find { it.first == language }?.second ?: "English",
+                        modifier = Modifier.fillMaxWidth().menuAnchor(),
+                        value = SettingsCatalog.languages.find { it.first == language }?.second ?: "English",
                         onValueChange = {},
                         readOnly = true,
                         label = { Text("Select Language") },
-                        trailingIcon = { Icon(Icons.Default.ArrowDropDown, contentDescription = "Expand") },
                         singleLine = true,
                         colors = androidx.compose.material3.TextFieldDefaults.colors(
                             focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
                             unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest
                         )
                     )
-                }
-            }
-        }
-
-        // Language options
-        item {
-            SettingsSection(title = "Available Languages") {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    languages.forEach { (code, name) ->
-                        ListItem(
-                            modifier = Modifier.fillMaxWidth(),
-                            headlineContent = { Text(name) },
-                            leadingContent = {
-                                androidx.compose.material3.Checkbox(
-                                    checked = code == language,
-                                    onCheckedChange = { if (it) coroutineScope.launch { settings.setLanguage(code) } }
-                                )
-                            }
-                        )
+                    DropdownMenu(
+                        expanded = expandedLanguage,
+                        onDismissRequest = { expandedLanguage = false }
+                    ) {
+                        SettingsCatalog.languages.forEach { (code, name) ->
+                            DropdownMenuItem(
+                                text = { Text(name) },
+                                onClick = {
+                                    expandedLanguage = false
+                                    coroutineScope.launch { settings.setLanguage(code) }
+                                }
+                            )
+                        }
                     }
                 }
             }
@@ -190,10 +169,10 @@ fun SettingsScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         modifier = Modifier.fillMaxWidth().padding(8.dp)
                     ) {
-                        Text("Show ${enabledEquipment.size} of ${getDefaultEquipmentSet().size} equipment types")
+                        Text("Show ${enabledEquipment.size} of ${SettingsDataStore.getDefaultEquipmentSet().size} equipment types")
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             TextButton(onClick = {
-                                coroutineScope.launch { settings.setEnabledEquipment(getDefaultEquipmentSet()) }
+                                coroutineScope.launch { settings.setEnabledEquipment(SettingsDataStore.getDefaultEquipmentSet()) }
                             }) {
                                 Text("Select All", fontSize = 14.sp)
                             }
@@ -204,26 +183,18 @@ fun SettingsScreen(
                             }
                         }
                     }
-                    if (expandedEquipment) {
-                        getDefaultEquipmentSet().sorted().forEach { equipment ->
-                            ListItem(
-                                modifier = Modifier.fillMaxWidth(),
-                                headlineContent = { Text(equipment.capitalize()) },
-                                leadingContent = {
-                                    Checkbox(
-                                        checked = enabledEquipment.contains(equipment),
-                                        onCheckedChange = { checked ->
-                                            val newSet = enabledEquipment.toMutableSet()
-                                            if (checked) newSet.add(equipment) else newSet.remove(equipment)
-                                            coroutineScope.launch { settings.setEnabledEquipment(newSet) }
-                                        }
-                                    )
-                                }
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        SettingsDataStore.getDefaultEquipmentSet().sorted().forEach { equipment ->
+                            FilterChip(
+                                selected = equipment in enabledEquipment,
+                                onClick = {
+                                    val newSet = enabledEquipment.toMutableSet()
+                                    if (equipment in newSet) newSet.remove(equipment) else newSet.add(equipment)
+                                    coroutineScope.launch { settings.setEnabledEquipment(newSet) }
+                                },
+                                label = { Text(equipment.replaceFirstChar { it.uppercase() }) }
                             )
                         }
-                    }
-                    androidx.compose.material3.TextButton(onClick = { expandedEquipment = !expandedEquipment }) {
-                        Text(if (expandedEquipment) "Show Less" else "Show All Equipment")
                     }
                 }
             }
@@ -336,7 +307,7 @@ fun SettingsScreen(
             SettingsSection(title = "About") {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     SettingsRow(title = "Version", subtitle = "1.0.0")
-                    SettingsRow(title = "Dataset", subtitle = "1,324 exercises from Gym Visual")
+                    SettingsRow(title = "Data provider", subtitle = "Exercise data and media provided by Gym Visual")
                     SettingsRow(title = "License", subtitle = "MIT + Gym Visual media terms")
                 }
             }
@@ -412,11 +383,11 @@ fun SettingsToggle(
     }
 }
 
-private fun getDefaultEquipmentSet(): Set<String> {
-    return setOf(
-        "body weight", "dumbbell", "cable", "barbell", "leverage machine",
-        "band", "smith machine", "kettlebell", "weighted", "stability ball",
-        "ez barbell", "other"
+internal object SettingsCatalog {
+    val languages = listOf(
+        "en" to "English", "es" to "Español", "it" to "Italiano", "tr" to "Türkçe",
+        "ru" to "Русский", "zh" to "中文", "hi" to "हिन्दी", "pl" to "Polski",
+        "ko" to "한국어", "fr" to "Français"
     )
 }
 
