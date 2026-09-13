@@ -16,15 +16,17 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
@@ -81,8 +83,9 @@ fun ExerciseListScreen(
     }
     val visibleExercises = exercises.filterFavorites(showFavoritesOnly)
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        Column {
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.surface,
+        topBar = {
             TopAppBar(
                 modifier = Modifier.fillMaxWidth(),
                 title = { Text(text = category.replaceFirstChar { it.uppercase() }, fontWeight = FontWeight.Bold) },
@@ -91,7 +94,7 @@ fun ExerciseListScreen(
                 ),
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 actions = {
@@ -104,6 +107,20 @@ fun ExerciseListScreen(
                     }
                 }
             )
+        },
+        floatingActionButton = {
+            if (!showSearch) {
+                FloatingActionButton(onClick = { showSearch = true }) {
+                    Icon(Icons.Default.Search, contentDescription = "Search exercises")
+                }
+            }
+        }
+    ) { contentPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(contentPadding)
+        ) {
 
             if (showSearch) {
                 androidx.compose.material3.TextField(
@@ -127,14 +144,21 @@ fun ExerciseListScreen(
             }
 
             if (visibleExercises.isEmpty()) {
-                EmptyState(message = if (showFavoritesOnly) "No favorite exercises in this category" else "No exercises found for this category")
+                EmptyState(
+                    message = if (showFavoritesOnly) {
+                        "No favorite exercises in this category"
+                    } else {
+                        "No exercises found for this category"
+                    },
+                    modifier = Modifier.weight(1f)
+                )
             } else {
                 LazyVerticalGrid(
-                    columns = GridCells.Fixed(2),
+                    columns = GridCells.Adaptive(minSize = 160.dp),
                     contentPadding = androidx.compose.foundation.layout.PaddingValues(12.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.fillMaxSize().padding(top = 8.dp)
+                    modifier = Modifier.fillMaxWidth().weight(1f)
                 ) {
                     items(visibleExercises, key = { it.id }) { exercise ->
                         ExerciseCard(
@@ -156,12 +180,6 @@ fun ExerciseListScreen(
                     }
                 }
             }
-        }
-        androidx.compose.material3.FloatingActionButton(
-            modifier = Modifier.align(Alignment.BottomEnd).padding(20.dp),
-            onClick = { showSearch = true }
-        ) {
-            Icon(Icons.Default.Search, contentDescription = "Search exercises")
         }
     }
 }

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -21,6 +22,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ViewList
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.GridView
@@ -28,7 +30,6 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ThumbDown
 import androidx.compose.material.icons.filled.ThumbDownOffAlt
-import androidx.compose.material.icons.filled.ViewList
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -57,7 +58,14 @@ fun AppTopAppBar(
 ) {
     TopAppBar(
         modifier = Modifier.fillMaxWidth(),
-        title = { Text(text = title, fontWeight = FontWeight.Bold) },
+        title = {
+            Text(
+                text = title,
+                fontWeight = FontWeight.Bold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        },
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow
         ),
@@ -70,7 +78,7 @@ fun AppTopAppBar(
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 IconButton(onClick = onGridListToggleClick) {
                     Icon(
-                        imageVector = if (isGridMode) Icons.Default.ViewList else Icons.Default.GridView,
+                        imageVector = if (isGridMode) Icons.AutoMirrored.Filled.ViewList else Icons.Default.GridView,
                         contentDescription = if (isGridMode) "Switch to list view" else "Switch to grid view"
                     )
                 }
@@ -98,7 +106,7 @@ fun BodyPartCard(
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .height(if (compactList) 76.dp else 144.dp),
+            .heightIn(min = if (compactList) 76.dp else 144.dp),
         onClick = onClick,
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
@@ -149,7 +157,7 @@ private fun CategoryText(name: String, exerciseCount: Int, modifier: Modifier = 
             text = name,
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
-            maxLines = 1,
+            maxLines = 2,
             overflow = TextOverflow.Ellipsis
         )
         Text(
@@ -266,10 +274,11 @@ fun ExerciseCard(
 @Composable
 fun EmptyState(
     message: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector = Icons.Default.Search
+    icon: androidx.compose.ui.graphics.vector.ImageVector = Icons.Default.Search,
+    modifier: Modifier = Modifier
 ) {
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
         Column(

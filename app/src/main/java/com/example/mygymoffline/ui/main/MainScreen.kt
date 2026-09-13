@@ -1,8 +1,6 @@
 package com.example.mygymoffline.ui.main
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -13,6 +11,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.ui.platform.testTag
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -54,8 +53,9 @@ fun MainScreen(
     val previewsByCategory = categoryPreviews.associate { it.category to it.gifPath }
     val coroutineScope = rememberCoroutineScope()
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        Column {
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.surface,
+        topBar = {
             AppTopAppBar(
                 title = stringResource(R.string.app_name),
                 onSettingsClick = onSettingsClick,
@@ -68,21 +68,36 @@ fun MainScreen(
                 },
                 showFavoritesOnly = showFavoritesOnly
             )
-
-            if (initializationState == ExerciseRepository.InitializationState.Loading) {
-                EmptyState(message = "Loading exercise library...")
-            } else if (initializationState == ExerciseRepository.InitializationState.Failed) {
-                EmptyState(message = "Unable to load the exercise library")
-            } else if (categories.isEmpty()) {
-                EmptyState(message = "No categories found")
-            } else if (isGridMode) {
+        }
+    ) { contentPadding ->
+        when {
+            initializationState == ExerciseRepository.InitializationState.Loading -> {
+                EmptyState(
+                    message = "Loading exercise library...",
+                    modifier = Modifier.fillMaxSize().padding(contentPadding)
+                )
+            }
+            initializationState == ExerciseRepository.InitializationState.Failed -> {
+                EmptyState(
+                    message = "Unable to load the exercise library",
+                    modifier = Modifier.fillMaxSize().padding(contentPadding)
+                )
+            }
+            categories.isEmpty() -> {
+                EmptyState(
+                    message = "No categories found",
+                    modifier = Modifier.fillMaxSize().padding(contentPadding)
+                )
+            }
+            isGridMode -> {
                 LazyVerticalGrid(
-                    columns = GridCells.Fixed(2),
+                    columns = GridCells.Adaptive(minSize = 160.dp),
                     contentPadding = androidx.compose.foundation.layout.PaddingValues(12.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     modifier = Modifier
                         .fillMaxSize()
+                        .padding(contentPadding)
                         .testTag("category-grid")
                 ) {
                     items(categories) { category ->
@@ -97,12 +112,14 @@ fun MainScreen(
                         )
                     }
                 }
-            } else {
+            }
+            else -> {
                 LazyColumn(
                     contentPadding = androidx.compose.foundation.layout.PaddingValues(12.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                     modifier = Modifier
                         .fillMaxSize()
+                        .padding(contentPadding)
                         .testTag("category-list")
                 ) {
                     items(categories) { category ->
