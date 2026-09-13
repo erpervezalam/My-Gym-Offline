@@ -4,9 +4,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.clickable
@@ -14,13 +14,13 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.ThumbDown
@@ -35,6 +35,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.mygymoffline.data.db.Exercise
@@ -82,37 +84,33 @@ fun ExerciseDetailBottomSheet(
     val currentSteps = instructionStepsMap[selectedLanguage] ?: instructionStepsMap["en"] ?: emptyList()
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxSize(),
         colors = CardDefaults.cardColors(
             containerColor = androidx.compose.material3.MaterialTheme.colorScheme.surfaceContainerLow
         )
     ) {
         Column(
-            modifier = Modifier
-                .padding(16.dp)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            modifier = Modifier.fillMaxSize()
         ) {
-            // Header with close button
             Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth().height(56.dp).padding(horizontal = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = onCloseClick) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
-                    }
-                    Text(
-                        text = exercise.name,
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                IconButton(onClick = onCloseClick, modifier = Modifier.size(40.dp)) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                 }
+                Text(
+                    text = exercise.name.replaceFirstChar { it.uppercase() },
+                    modifier = Modifier.weight(1f).padding(horizontal = 8.dp),
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(2.dp)
                 ) {
-                    IconButton(onClick = {
+                    IconButton(modifier = Modifier.size(40.dp), onClick = {
                         isFavorite = !isFavorite
                         coroutineScope.launch { repository.toggleFavorite(exercise.id) }
                         Telemetry.trackEvent("favorite_toggle", "DetailBottomSheet", mapOf("exercise_id" to exercise.id, "is_favorite" to isFavorite))
@@ -121,10 +119,10 @@ fun ExerciseDetailBottomSheet(
                             imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                             contentDescription = if (isFavorite) "Remove from favorites" else "Add to favorites",
                             tint = if (isFavorite) androidx.compose.material3.MaterialTheme.colorScheme.error else androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.size(30.dp)
+                            modifier = Modifier.size(20.dp)
                         )
                     }
-                    IconButton(onClick = {
+                    IconButton(modifier = Modifier.size(40.dp), onClick = {
                         isDisliked = !isDisliked
                         coroutineScope.launch { repository.toggleDislike(exercise.id) }
                         Telemetry.trackEvent("dislike_toggle", "DetailBottomSheet", mapOf("exercise_id" to exercise.id, "is_disliked" to isDisliked))
@@ -133,7 +131,7 @@ fun ExerciseDetailBottomSheet(
                             imageVector = if (isDisliked) Icons.Default.ThumbDown else Icons.Default.ThumbDownOffAlt,
                             contentDescription = if (isDisliked) "Remove dislike" else "Dislike exercise",
                             tint = if (isDisliked) androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f) else androidx.compose.material3.MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.size(32.dp)
+                            modifier = Modifier.size(20.dp)
                         )
                     }
                 }
@@ -145,40 +143,51 @@ fun ExerciseDetailBottomSheet(
                 contentScale = ContentScale.Fit,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .heightIn(min = 220.dp, max = 360.dp)
-                    .aspectRatio(1f)
+                    .height(200.dp)
                     .clickable(onClick = onGifClick)
             )
 
-            // Details
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                DetailRow("Equipment", exercise.equipment)
-                DetailRow("Target Muscle", exercise.target)
-                DetailRow("Muscle Group", exercise.muscleGroup)
+            Column(
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                DetailRow("Equipment", exercise.equipment.toDisplayText())
+                DetailRow("Target Muscle", exercise.target.toDisplayText())
+                DetailRow("Muscle Group", exercise.muscleGroup.toDisplayText())
                 if (secondaryMuscles.isNotEmpty()) {
-                    DetailRow("Secondary Muscles", secondaryMuscles.joinToString(", "))
+                    DetailRow("Secondary Muscles", secondaryMuscles.joinToString(", ") { it.toDisplayText() })
                 }
+            }
 
-                Divider(
-                    color = androidx.compose.material3.MaterialTheme.colorScheme.outlineVariant
-                )
+            HorizontalDivider(color = androidx.compose.material3.MaterialTheme.colorScheme.outlineVariant)
+            Text(
+                text = "Instructions",
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                fontSize = 17.sp,
+                fontWeight = FontWeight.Bold
+            )
 
-                // Instructions
-                Text("Instructions", fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState())
+                    .padding(start = 12.dp, end = 12.dp, bottom = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
                 if (currentSteps.isNotEmpty()) {
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        currentSteps.forEachIndexed { index, step ->
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.Top
-                            ) {
-                                Text(
-                                    text = "${index + 1}. ",
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                                Text(text = step, fontSize = 14.sp, modifier = Modifier.weight(1f))
-                            }
+                    currentSteps.forEachIndexed { index, step ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.Top
+                        ) {
+                            Text(
+                                text = "${index + 1}.",
+                                modifier = Modifier.padding(end = 8.dp),
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Text(text = step, fontSize = 14.sp, modifier = Modifier.weight(1f))
                         }
                     }
                 } else {
@@ -193,9 +202,23 @@ fun ExerciseDetailBottomSheet(
 private fun DetailRow(label: String, value: String) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
+        verticalAlignment = Alignment.Top
     ) {
-        Text(text = label, fontSize = 14.sp, color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant)
-        Text(text = value, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+        Text(
+            text = label,
+            modifier = Modifier.weight(0.42f),
+            fontSize = 13.sp,
+            color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            text = value,
+            modifier = Modifier.weight(0.58f),
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Medium,
+            textAlign = TextAlign.End
+        )
     }
 }
+
+private fun String.toDisplayText(): String =
+    replaceFirstChar { it.uppercase() }
