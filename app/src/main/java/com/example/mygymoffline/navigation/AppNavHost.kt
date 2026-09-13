@@ -58,6 +58,12 @@ fun AppNavHost(
     val destination = navController.currentDestination
     val customGifDirectoryUri by settings.customGifDirectoryUriFlow
         .collectAsStateWithLifecycle(initialValue = null)
+    val selectedLanguage by settings.languageFlow.collectAsStateWithLifecycle(
+        initialValue = SettingsDataStore.DEFAULT_LANGUAGE
+    )
+    val autoPlayGif by settings.autoPlayGifFlow.collectAsStateWithLifecycle(
+        initialValue = SettingsDataStore.DEFAULT_AUTO_PLAY_GIF
+    )
     val context = LocalContext.current
     val gifOverrides by produceState<Map<String, android.net.Uri>>(
         initialValue = emptyMap(),
@@ -88,6 +94,7 @@ fun AppNavHost(
                 repository = repository,
                 category = destination.category,
                 gifSourceResolver = gifSourceResolver,
+                autoPlayGif = autoPlayGif,
                 onBackClick = { navController.popBackStack() }
             )
         }
@@ -100,8 +107,9 @@ fun AppNavHost(
                 ExerciseDetailBottomSheet(
                     exercise = ex,
                     repository = repository,
-                    selectedLanguage = "en",
+                    selectedLanguage = selectedLanguage,
                     gifSourceResolver = gifSourceResolver,
+                    autoPlayGif = autoPlayGif,
                     onCloseClick = { navController.popBackStack() }
                 )
             }

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
@@ -47,7 +48,7 @@ import com.example.mygymoffline.util.Telemetry
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.launch
-import coil.compose.AsyncImage
+import com.example.mygymoffline.ui.media.ExerciseGif
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
@@ -56,6 +57,7 @@ fun ExerciseDetailBottomSheet(
     repository: ExerciseRepository,
     selectedLanguage: String,
     gifSourceResolver: GifSourceResolver,
+    autoPlayGif: Boolean,
     onCloseClick: () -> Unit
 ) {
     var isFavorite by remember { mutableStateOf(exercise.isFavorite) }
@@ -140,11 +142,16 @@ fun ExerciseDetailBottomSheet(
         ) {
 
             Box(
-                modifier = Modifier.fillMaxWidth().aspectRatio(1f)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .widthIn(max = 640.dp)
+                    .align(Alignment.CenterHorizontally)
+                    .aspectRatio(1f)
             ) {
-                AsyncImage(
+                ExerciseGif(
                     model = gifSourceResolver.modelFor(exercise.gifPath),
                     contentDescription = "${exercise.name} exercise GIF",
+                    autoPlay = autoPlayGif,
                     contentScale = ContentScale.Fit,
                     modifier = Modifier.fillMaxSize()
                 )
@@ -152,7 +159,11 @@ fun ExerciseDetailBottomSheet(
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
             Column(
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .widthIn(max = 640.dp)
+                    .align(Alignment.CenterHorizontally)
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 DetailRow("Equipment", exercise.equipment.toDisplayText())
@@ -174,6 +185,8 @@ fun ExerciseDetailBottomSheet(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .widthIn(max = 640.dp)
+                    .align(Alignment.CenterHorizontally)
                     .weight(1f)
                     .verticalScroll(rememberScrollState())
                     .padding(start = 12.dp, end = 12.dp, bottom = 16.dp),
@@ -212,14 +225,18 @@ private fun DetailRow(label: String, value: String) {
             text = label,
             modifier = Modifier.weight(0.42f),
             fontSize = 13.sp,
-            color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant
+            color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
         Text(
             text = value,
             modifier = Modifier.weight(0.58f),
             fontSize = 13.sp,
             fontWeight = FontWeight.Medium,
-            textAlign = TextAlign.End
+            textAlign = TextAlign.End,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis
         )
     }
 }

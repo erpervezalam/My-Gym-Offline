@@ -49,7 +49,6 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
 import com.example.mygymoffline.R
 import com.example.mygymoffline.data.db.Exercise
 import com.example.mygymoffline.data.repository.ExerciseRepository
@@ -57,6 +56,7 @@ import com.example.mygymoffline.navigation.NavController
 import com.example.mygymoffline.navigation.Destination
 import com.example.mygymoffline.ui.components.EmptyState
 import com.example.mygymoffline.ui.media.GifSourceResolver
+import com.example.mygymoffline.ui.media.ExerciseGif
 import com.example.mygymoffline.util.Telemetry
 import kotlinx.coroutines.launch
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -69,6 +69,7 @@ fun ExerciseListScreen(
     repository: ExerciseRepository,
     category: String,
     gifSourceResolver: GifSourceResolver,
+    autoPlayGif: Boolean,
     onBackClick: () -> Unit
 ) {
     var showFavoritesOnly by remember { mutableStateOf(false) }
@@ -164,6 +165,7 @@ fun ExerciseListScreen(
                         ExerciseCard(
                             exercise = exercise,
                             gifSourceResolver = gifSourceResolver,
+                            autoPlayGif = autoPlayGif,
                             onClick = {
                                 Telemetry.trackEvent("exercise_click", "ExerciseList:$category", mapOf("exercise_id" to exercise.id))
                                 navController.navigate(Destination.ExerciseDetail(exercise.id))
@@ -191,6 +193,7 @@ internal fun List<Exercise>.filterFavorites(showFavoritesOnly: Boolean): List<Ex
 fun ExerciseCard(
     exercise: Exercise,
     gifSourceResolver: GifSourceResolver,
+    autoPlayGif: Boolean,
     onClick: () -> Unit,
     onFavoriteClick: () -> Unit,
     onDislikeClick: () -> Unit,
@@ -205,9 +208,10 @@ fun ExerciseCard(
     ) {
         Column {
             Box(modifier = Modifier.fillMaxWidth().height(118.dp)) {
-                AsyncImage(
+                ExerciseGif(
                     model = gifSourceResolver.modelFor(exercise.gifPath),
-                    contentDescription = "Exercise GIF",
+                    contentDescription = "${exercise.name} exercise GIF",
+                    autoPlay = autoPlayGif,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize()
                 )
