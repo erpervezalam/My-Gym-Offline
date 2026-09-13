@@ -43,6 +43,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.mygymoffline.data.db.Exercise
 import com.example.mygymoffline.data.repository.ExerciseRepository
+import com.example.mygymoffline.data.repository.toggleFavoriteReaction
+import com.example.mygymoffline.data.repository.toggleDislikeReaction
 import com.example.mygymoffline.ui.media.GifSourceResolver
 import com.example.mygymoffline.ui.components.toTitleCase
 import com.example.mygymoffline.util.Telemetry
@@ -108,7 +110,12 @@ fun ExerciseDetailBottomSheet(
                 },
                 actions = {
                     IconButton(onClick = {
-                        isFavorite = !isFavorite
+                        val updatedReaction = exercise.copy(
+                            isFavorite = isFavorite,
+                            isDisliked = isDisliked
+                        ).toggleFavoriteReaction()
+                        isFavorite = updatedReaction.isFavorite
+                        isDisliked = updatedReaction.isDisliked
                         coroutineScope.launch { repository.toggleFavorite(exercise.id) }
                         Telemetry.trackEvent("favorite_toggle", "DetailBottomSheet", mapOf("exercise_id" to exercise.id, "is_favorite" to isFavorite))
                     }) {
@@ -120,7 +127,12 @@ fun ExerciseDetailBottomSheet(
                         )
                     }
                     IconButton(onClick = {
-                        isDisliked = !isDisliked
+                        val updatedReaction = exercise.copy(
+                            isFavorite = isFavorite,
+                            isDisliked = isDisliked
+                        ).toggleDislikeReaction()
+                        isFavorite = updatedReaction.isFavorite
+                        isDisliked = updatedReaction.isDisliked
                         coroutineScope.launch { repository.toggleDislike(exercise.id) }
                         Telemetry.trackEvent("dislike_toggle", "DetailBottomSheet", mapOf("exercise_id" to exercise.id, "is_disliked" to isDisliked))
                     }) {
@@ -151,6 +163,7 @@ fun ExerciseDetailBottomSheet(
             ) {
                 ExerciseGif(
                     model = gifSourceResolver.modelFor(exercise.gifPath),
+                    fallbackModel = gifSourceResolver.bundledModelFor(exercise.gifPath),
                     contentDescription = "${exercise.name} exercise GIF",
                     autoPlay = autoPlayGif,
                     contentScale = ContentScale.Fit,

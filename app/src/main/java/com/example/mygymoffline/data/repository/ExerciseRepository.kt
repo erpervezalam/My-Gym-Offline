@@ -107,7 +107,7 @@ class ExerciseRepository(
     suspend fun toggleFavorite(exerciseId: String) {
         val exercise = dao.getById(exerciseId)
         if (exercise != null) {
-            val updated = exercise.copy(isFavorite = !exercise.isFavorite)
+            val updated = exercise.toggleFavoriteReaction()
             dao.update(updated)
             AppLogger.i("ExerciseRepository", "Toggled favorite for $exerciseId: ${updated.isFavorite}")
         }
@@ -116,11 +116,9 @@ class ExerciseRepository(
     suspend fun toggleDislike(exerciseId: String) {
         val exercise = dao.getById(exerciseId)
         if (exercise != null) {
-            val updated = exercise.copy(isDisliked = !exercise.isDisliked)
-            // If marking as disliked, remove from favorites
-            val finalUpdated = if (updated.isDisliked) updated.copy(isFavorite = false) else updated
-            dao.update(finalUpdated)
-            AppLogger.i("ExerciseRepository", "Toggled dislike for $exerciseId: ${finalUpdated.isDisliked}")
+            val updated = exercise.toggleDislikeReaction()
+            dao.update(updated)
+            AppLogger.i("ExerciseRepository", "Toggled dislike for $exerciseId: ${updated.isDisliked}")
         }
     }
 

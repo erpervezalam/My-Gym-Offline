@@ -44,6 +44,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.setValue
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -60,6 +61,8 @@ import androidx.compose.ui.unit.sp
 import com.example.mygymoffline.R
 import com.example.mygymoffline.data.prefs.SettingsDataStore
 import com.example.mygymoffline.data.prefs.ThemeMode
+import com.example.mygymoffline.ui.media.GifOverrideValidation
+import com.example.mygymoffline.ui.media.GifSourceResolver
 import com.example.mygymoffline.util.AppLogger
 import com.example.mygymoffline.util.Telemetry
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -81,8 +84,15 @@ fun SettingsScreen(
     var expandedLanguage by remember { mutableStateOf(false) }
     var expandedThemeMode by remember { mutableStateOf(false) }
     var expandedDebug by remember { mutableStateOf(false) }
+    var gifLibraryMessage by remember { mutableStateOf<String?>(null) }
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
+    val customGifValidation by produceState<GifOverrideValidation?>(
+        initialValue = null,
+        key1 = customGifDirectoryUri
+    ) {
+        value = customGifDirectoryUri?.let { GifSourceResolver.validateOverrides(context, it) }
+    }
     val gifDirectoryPicker = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.OpenDocumentTree()
     ) { uri ->
@@ -92,19 +102,40 @@ fun SettingsScreen(
                     uri,
                     Intent.FLAG_GRANT_READ_URI_PERMISSION
                 )
-                customGifDirectoryUri
-                    ?.takeIf { it != uri.toString() }
-                    ?.let { previousUri ->
-                        runCatching {
-                            context.contentResolver.releasePersistableUriPermission(
-                                Uri.parse(previousUri),
-                                Intent.FLAG_GRANT_READ_URI_PERMISSION
-                            )
+                coroutineScope.launch {
+                    val validation = GifSourceResolver.validateOverrides(context, uri.toString())
+                    if (validation.validOverrideCount == 0) {
+                        if (customGifDirectoryUri != uri.toString()) {
+                            runCatching {
+                                context.contentResolver.releasePersistableUriPermission(
+                                    uri,
+                                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+                                )
+                            }
+                        }
+                        gifLibraryMessage = "No matching GIFs found. Bundled animations will be used."
+                    } else {
+                        customGifDirectoryUri
+                            ?.takeIf { it != uri.toString() }
+                            ?.let { previousUri ->
+                                runCatching {
+                                    context.contentResolver.releasePersistableUriPermission(
+                                        Uri.parse(previousUri),
+                                        Intent.FLAG_GRANT_READ_URI_PERMISSION
+                                    )
+                                }
+                            }
+                        settings.setCustomGifDirectoryUri(uri.toString())
+                        gifLibraryMessage = buildString {
+                            append("${validation.validOverrideCount} matching GIF")
+                            append(if (validation.validOverrideCount == 1) " is" else "s are")
+                            append(" ready; bundled animations fill any gaps.")
                         }
                     }
-                coroutineScope.launch { settings.setCustomGifDirectoryUri(uri.toString()) }
+                }
             } catch (error: SecurityException) {
                 AppLogger.w("Settings", "Unable to retain GIF folder access")
+                gifLibraryMessage = "Unable to read that folder. Bundled animations will be used."
             }
         }
     }
@@ -260,7 +291,7 @@ fun SettingsScreen(
                     subtitle = if (customGifDirectoryUri == null) {
                         "Bundled animations"
                     } else {
-                        "Custom folder selected"
+                        customGifValidation.toGifLibrarySubtitle()
                     },
                     trailing = {
                         TextButton(onClick = { gifDirectoryPicker.launch(null) }) {
@@ -280,6 +311,13 @@ fun SettingsScreen(
                     }) {
                         Text("Use Bundled GIFs Only")
                     }
+                }
+                gifLibraryMessage?.let { message ->
+                    Text(
+                        text = message,
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
         }
@@ -431,6 +469,13 @@ private val ThemeMode.displayName: String
         ThemeMode.LIGHT -> "Light"
         ThemeMode.DARK -> "Dark"
     }
+
+private fun GifOverrideValidation?.toGifLibrarySubtitle(): String = when {
+    this == null -> "Checking custom folder…"
+    !directoryReadable || validOverrideCount == 0 -> "No matching GIFs; bundled animations are in use"
+    ignoredGifCount > 0 -> "$validOverrideCount matching GIFs; bundled animations fill gaps"
+    else -> "$validOverrideCount matching GIFs ready"
+}
 
 private fun shareLogs() {
     // Implementation would use Intent.ACTION_SEND with log files

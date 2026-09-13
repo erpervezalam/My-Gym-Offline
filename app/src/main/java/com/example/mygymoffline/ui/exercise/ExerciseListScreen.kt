@@ -211,6 +211,7 @@ fun ExerciseCard(
             Box(modifier = Modifier.fillMaxWidth().height(118.dp)) {
                 ExerciseGif(
                     model = gifSourceResolver.modelFor(exercise.gifPath),
+                    fallbackModel = gifSourceResolver.bundledModelFor(exercise.gifPath),
                     contentDescription = "${exercise.name} exercise GIF",
                     autoPlay = autoPlayGif,
                     contentScale = ContentScale.Crop,
