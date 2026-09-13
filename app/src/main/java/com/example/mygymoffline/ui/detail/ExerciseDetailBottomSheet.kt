@@ -1,12 +1,12 @@
 package com.example.mygymoffline.ui.detail
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -139,15 +139,17 @@ fun ExerciseDetailBottomSheet(
             modifier = Modifier.fillMaxSize().padding(contentPadding)
         ) {
 
-            AsyncImage(
-                model = gifSourceResolver.modelFor(exercise.gifPath),
-                contentDescription = "${exercise.name} exercise GIF",
-                contentScale = ContentScale.Fit,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(min = 240.dp, max = 360.dp)
-                    .aspectRatio(1f)
-            )
+            Box(
+                modifier = Modifier.fillMaxWidth().aspectRatio(1f)
+            ) {
+                AsyncImage(
+                    model = gifSourceResolver.modelFor(exercise.gifPath),
+                    contentDescription = "${exercise.name} exercise GIF",
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
             Column(
                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
