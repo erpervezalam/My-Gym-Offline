@@ -206,7 +206,7 @@ fun ExerciseCard(
                             imageVector = if (exercise.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                             contentDescription = if (exercise.isFavorite) "Remove from favorites" else "Add to favorites",
                             tint = if (exercise.isFavorite) Color.Red else Color.White,
-                            modifier = Modifier.size(17.dp)
+                            modifier = Modifier.size(10.dp)
                         )
                     }
                     IconButton(onClick = onDislikeClick, modifier = Modifier.size(32.dp)) {
@@ -214,7 +214,7 @@ fun ExerciseCard(
                             imageVector = if (exercise.isDisliked) Icons.Default.ThumbDown else Icons.Default.ThumbDownOffAlt,
                             contentDescription = if (exercise.isDisliked) "Remove dislike" else "Dislike exercise",
                             tint = Color.White,
-                            modifier = Modifier.size(17.dp)
+                            modifier = Modifier.size(10.dp)
                         )
                     }
                 }
