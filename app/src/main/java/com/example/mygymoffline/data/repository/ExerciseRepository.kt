@@ -3,19 +3,25 @@ package com.example.mygymoffline.data.repository
 import android.content.Context
 import com.example.mygymoffline.data.db.Exercise
 import com.example.mygymoffline.data.db.ExerciseDao
+import com.example.mygymoffline.data.db.CategoryCount
+import com.example.mygymoffline.data.db.CategoryPreview
 import com.example.mygymoffline.data.db.ExerciseDatabase
 import com.example.mygymoffline.data.loader.ExerciseJsonLoader
 import com.example.mygymoffline.data.prefs.SettingsDataStore
 import com.example.mygymoffline.util.AppLogger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class ExerciseRepository(
     private val context: Context,
     private val dao: ExerciseDao,
@@ -24,9 +30,14 @@ class ExerciseRepository(
     private val scope: CoroutineScope
 ) {
 
+    enum class InitializationState { Loading, Ready, Failed }
+
     companion object {
         private const val PREFS_INITIALIZED = "exercises_pre_populated"
     }
+
+    private val _initializationState = MutableStateFlow(InitializationState.Loading)
+    val initializationState: StateFlow<InitializationState> = _initializationState
 
     suspend fun initialize() {
         AppLogger.i("ExerciseRepository", "Initializing repository")
@@ -40,11 +51,14 @@ class ExerciseRepository(
                 dao.insertAll(exercises)
                 AppLogger.i("ExerciseRepository", "Inserted ${exercises.size} exercises into database")
                 prefs.edit().putBoolean(PREFS_INITIALIZED, true).apply()
+                _initializationState.value = InitializationState.Ready
             }.onFailure { e ->
                 AppLogger.e("ExerciseRepository", "Failed to pre-populate database", e)
+                _initializationState.value = InitializationState.Failed
             }
         } else {
             AppLogger.i("ExerciseRepository", "Database already initialized")
+            _initializationState.value = InitializationState.Ready
         }
     }
 
@@ -67,6 +81,9 @@ class ExerciseRepository(
     }
 
     fun getAllCategories(): Flow<List<String>> = dao.getAllCategories()
+
+    fun getCategoryCounts(): Flow<List<CategoryCount>> = dao.getCategoryCounts()
+    fun getCategoryPreviews(): Flow<List<CategoryPreview>> = dao.getCategoryPreviews()
 
     fun getAllEquipment(): Flow<List<String>> = dao.getAllEquipment()
 
@@ -92,7 +109,7 @@ class ExerciseRepository(
     suspend fun toggleFavorite(exerciseId: String) {
         val exercise = dao.getById(exerciseId)
         if (exercise != null) {
-            val updated = exercise.copy(isFavorite = !exercise.isFavorite)
+            val updated = exercise.toggleFavoriteReaction()
             dao.update(updated)
             AppLogger.i("ExerciseRepository", "Toggled favorite for $exerciseId: ${updated.isFavorite}")
         }
@@ -101,11 +118,9 @@ class ExerciseRepository(
     suspend fun toggleDislike(exerciseId: String) {
         val exercise = dao.getById(exerciseId)
         if (exercise != null) {
-            val updated = exercise.copy(isDisliked = !exercise.isDisliked)
-            // If marking as disliked, remove from favorites
-            val finalUpdated = if (updated.isDisliked) updated.copy(isFavorite = false) else updated
-            dao.update(finalUpdated)
-            AppLogger.i("ExerciseRepository", "Toggled dislike for $exerciseId: ${finalUpdated.isDisliked}")
+            val updated = exercise.toggleDislikeReaction()
+            dao.update(updated)
+            AppLogger.i("ExerciseRepository", "Toggled dislike for $exerciseId: ${updated.isDisliked}")
         }
     }
 

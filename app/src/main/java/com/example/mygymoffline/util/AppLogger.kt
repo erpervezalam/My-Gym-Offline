@@ -2,6 +2,7 @@ package com.example.mygymoffline.util
 
 import android.content.Context
 import android.os.Environment
+import android.util.Log
 import timber.log.Timber
 import java.io.File
 import java.io.FileWriter
@@ -108,9 +109,9 @@ object AppLogger {
     private class FileLoggingTree : Timber.Tree() {
         private val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.getDefault())
 
-        override fun log(priority: Int, tag: String?, message: String, throwable: Throwable?) {
-            if (priority < Timber.INFO) return
-            val logMessage = buildMessage(priority, tag, message, throwable)
+        override fun log(priority: Int, tag: String?, message: String, t: Throwable?) {
+            if (priority < Log.INFO) return
+            val logMessage = buildMessage(priority, tag, message, t)
             writeToFile(logFile, logMessage)
         }
 
@@ -128,11 +129,11 @@ object AppLogger {
 
         private fun priorityToString(priority: Int): String {
             return when (priority) {
-                Timber.VERBOSE -> "VERBOSE"
-                Timber.DEBUG -> "DEBUG"
-                Timber.INFO -> "INFO"
-                Timber.WARN -> "WARN"
-                Timber.ERROR -> "ERROR"
+                Log.VERBOSE -> "VERBOSE"
+                Log.DEBUG -> "DEBUG"
+                Log.INFO -> "INFO"
+                Log.WARN -> "WARN"
+                Log.ERROR -> "ERROR"
                 else -> "UNKNOWN"
             }
         }

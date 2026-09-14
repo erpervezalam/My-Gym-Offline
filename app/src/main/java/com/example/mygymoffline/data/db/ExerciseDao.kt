@@ -7,6 +7,13 @@ import androidx.room.Query
 import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 
+data class CategoryCount(
+    val category: String,
+    val count: Int
+)
+
+data class CategoryPreview(val category: String, val gifPath: String)
+
 @Dao
 interface ExerciseDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
@@ -38,6 +45,12 @@ interface ExerciseDao {
 
     @Query("SELECT DISTINCT category FROM exercises ORDER BY category ASC")
     fun getAllCategories(): Flow<List<String>>
+
+    @Query("SELECT category, COUNT(*) AS count FROM exercises GROUP BY category ORDER BY category ASC")
+    fun getCategoryCounts(): Flow<List<CategoryCount>>
+
+    @Query("SELECT category, MIN(gifPath) AS gifPath FROM exercises GROUP BY category ORDER BY category ASC")
+    fun getCategoryPreviews(): Flow<List<CategoryPreview>>
 
     @Query("SELECT DISTINCT equipment FROM exercises ORDER BY equipment ASC")
     fun getAllEquipment(): Flow<List<String>>

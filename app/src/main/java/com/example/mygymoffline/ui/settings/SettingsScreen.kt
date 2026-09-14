@@ -1,92 +1,149 @@
 package com.example.mygymoffline.ui.settings
 
+import android.content.Intent
+import android.net.Uri
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.Divider
-import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.collectAsStateWithLifecycle
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.mygymoffline.BuildConfig
 import com.example.mygymoffline.R
 import com.example.mygymoffline.data.prefs.SettingsDataStore
+import com.example.mygymoffline.data.prefs.ThemeMode
+import com.example.mygymoffline.ui.media.GifOverrideValidation
+import com.example.mygymoffline.ui.media.GifSourceResolver
 import com.example.mygymoffline.util.AppLogger
 import com.example.mygymoffline.util.Telemetry
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.launch
 
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun SettingsScreen(
     settings: SettingsDataStore,
     onBackClick: () -> Unit
 ) {
     val language by settings.languageFlow.collectAsStateWithLifecycle(initialValue = "en")
-    val enabledEquipment by settings.enabledEquipmentFlow.collectAsStateWithLifecycle()
+    val enabledEquipment by settings.enabledEquipmentFlow.collectAsStateWithLifecycle(initialValue = emptySet())
     val gridMode by settings.gridModeFlow.collectAsStateWithLifecycle(initialValue = true)
     val autoPlayGif by settings.autoPlayGifFlow.collectAsStateWithLifecycle(initialValue = true)
-    val gifDownloadComplete by settings.gifDownloadCompleteFlow.collectAsStateWithLifecycle(initialValue = false)
-    val gifCacheSize by settings.gifCacheSizeFlow.collectAsStateWithLifecycle(initialValue = 0L)
+    val themeMode by settings.themeModeFlow.collectAsStateWithLifecycle(initialValue = ThemeMode.SYSTEM)
+    val customGifDirectoryUri by settings.customGifDirectoryUriFlow.collectAsStateWithLifecycle(initialValue = null)
 
-    var expandedEquipment by remember { mutableStateOf(false) }
+    var expandedLanguage by remember { mutableStateOf(false) }
+    var expandedThemeMode by remember { mutableStateOf(false) }
     var expandedDebug by remember { mutableStateOf(false) }
-
-    val languages = listOf(
-        "en" to "English",
-        "es" to "Español",
-        "it" to "Italiano",
-        "tr" to "Türkçe",
-        "ru" to "Русский",
-        "zh" to "中文",
-        "hi" to "हिन्दी",
-        "pl" to "Polski",
-        "ko" to "한국어",
-        "fr" to "Français"
-    )
-
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+    var gifLibraryMessage by remember { mutableStateOf<String?>(null) }
+    val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val customGifValidation by produceState<GifOverrideValidation?>(
+        initialValue = null,
+        key1 = customGifDirectoryUri
     ) {
-        // Header
-        item {
+        value = customGifDirectoryUri?.let { GifSourceResolver.validateOverrides(context, it) }
+    }
+    val gifDirectoryPicker = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocumentTree()
+    ) { uri ->
+        if (uri != null) {
+            try {
+                context.contentResolver.takePersistableUriPermission(
+                    uri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
+                coroutineScope.launch {
+                    val validation = GifSourceResolver.validateOverrides(context, uri.toString())
+                    if (validation.validOverrideCount == 0) {
+                        if (customGifDirectoryUri != uri.toString()) {
+                            runCatching {
+                                context.contentResolver.releasePersistableUriPermission(
+                                    uri,
+                                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+                                )
+                            }
+                        }
+                        gifLibraryMessage = "No matching GIFs found. Bundled animations will be used."
+                    } else {
+                        customGifDirectoryUri
+                            ?.takeIf { it != uri.toString() }
+                            ?.let { previousUri ->
+                                runCatching {
+                                    context.contentResolver.releasePersistableUriPermission(
+                                        Uri.parse(previousUri),
+                                        Intent.FLAG_GRANT_READ_URI_PERMISSION
+                                    )
+                                }
+                            }
+                        settings.setCustomGifDirectoryUri(uri.toString())
+                        gifLibraryMessage = buildString {
+                            append("${validation.validOverrideCount} matching GIF")
+                            append(if (validation.validOverrideCount == 1) " is" else "s are")
+                            append(" ready; bundled animations fill any gaps.")
+                        }
+                    }
+                }
+            } catch (error: SecurityException) {
+                AppLogger.w("Settings", "Unable to retain GIF folder access")
+                gifLibraryMessage = "Unable to read that folder. Bundled animations will be used."
+            }
+        }
+    }
+
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.surface,
+        topBar = {
             TopAppBar(
                 modifier = Modifier.fillMaxWidth(),
                 title = { Text(text = stringResource(R.string.settings_title), fontWeight = FontWeight.Bold) },
@@ -95,210 +152,246 @@ fun SettingsScreen(
                 ),
                 navigationIcon = {
                     androidx.compose.material3.IconButton(onClick = onBackClick) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 }
             )
         }
+    ) { contentPadding ->
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().padding(contentPadding),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
 
-        // Language Section
         item {
-            SettingsSection(title = "Language") {
-                ExposedDropdownMenuBox(
-                    modifier = Modifier.fillMaxWidth(),
-                    expanded = false, // Would need state for full dropdown
-                    onExpandedChange = {}
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHighest)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    androidx.compose.material3.TextField(
-                        modifier = Modifier.fillMaxWidth(),
-                        value = languages.find { it.first == language }?.second ?: "English",
-                        onValueChange = {},
-                        readOnly = true,
-                        label = { Text("Select Language") },
-                        trailingIcon = { Icon(Icons.Default.ArrowDropDown, contentDescription = "Expand") },
-                        singleLine = true,
-                        colors = androidx.compose.material3.TextFieldDefaults.textFieldColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
-                        )
-                    )
-                }
-            }
-        }
-
-        // Language options
-        item {
-            SettingsSection(title = "Available Languages") {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    languages.forEach { (code, name) ->
-                        ListItem(
-                            modifier = Modifier.fillMaxWidth(),
-                            headlineContent = { Text(name) },
-                            leadingContent = {
-                                androidx.compose.material3.Checkbox(
-                                    checked = code == language,
-                                    onCheckedChange = { if (it) settings.setLanguage(code) }
+                    Text("Language", modifier = Modifier.weight(1f), fontSize = 16.sp, fontWeight = FontWeight.Medium)
+                    Box {
+                        TextButton(onClick = { expandedLanguage = true }) {
+                            Text(SettingsCatalog.languages.find { it.first == language }?.second ?: "English")
+                            Icon(Icons.Default.ArrowDropDown, contentDescription = "Choose language")
+                        }
+                        DropdownMenu(expanded = expandedLanguage, onDismissRequest = { expandedLanguage = false }) {
+                            SettingsCatalog.languages.forEach { (code, name) ->
+                                DropdownMenuItem(
+                                    text = { Text(name) },
+                                    onClick = {
+                                        expandedLanguage = false
+                                        coroutineScope.launch { settings.setLanguage(code) }
+                                    }
                                 )
                             }
-                        )
+                        }
                     }
                 }
             }
         }
 
-        // Equipment Filter Section
         item {
-            SettingsSection(title = "Equipment Filter", subtitle = "Select equipment types to show") {
+            SettingsSection(title = "Equipment") {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Row(
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        modifier = Modifier.fillMaxWidth().padding(8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("Show ${enabledEquipment.size} of ${getDefaultEquipmentSet().size} equipment types")
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text("Select All", fontSize = 14.sp)
-                                .let { androidx.compose.material3.TextButton(onClick = { settings.setEnabledEquipment(getDefaultEquipmentSet()) }) { it } }
-                            Text("Clear All", fontSize = 14.sp)
-                                .let { androidx.compose.material3.TextButton(onClick = { settings.setEnabledEquipment(emptySet()) }) { it } }
-                        }
+                        Text(
+                            text = "${enabledEquipment.size}/${SettingsDataStore.getDefaultEquipmentSet().size} selected",
+                            modifier = Modifier.weight(1f),
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        TextButton(onClick = {
+                            coroutineScope.launch { settings.setEnabledEquipment(SettingsDataStore.getDefaultEquipmentSet()) }
+                        }) { Text("All", fontSize = 14.sp) }
+                        TextButton(onClick = {
+                            coroutineScope.launch { settings.setEnabledEquipment(emptySet()) }
+                        }) { Text("Clear", fontSize = 14.sp) }
                     }
-                    if (expandedEquipment) {
-                        getDefaultEquipmentSet().sorted().forEach { equipment ->
-                            ListItem(
-                                modifier = Modifier.fillMaxWidth(),
-                                headlineContent = { Text(equipment.capitalize()) },
-                                leadingContent = {
-                                    Checkbox(
-                                        checked = enabledEquipment.contains(equipment),
-                                        onCheckedChange = { checked ->
-                                            val newSet = enabledEquipment.toMutableSet()
-                                            if (checked) newSet.add(equipment) else newSet.remove(equipment)
-                                            settings.setEnabledEquipment(newSet)
-                                        }
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        SettingsDataStore.getDefaultEquipmentSet().sorted().forEach { equipment ->
+                            FilterChip(
+                                modifier = Modifier.height(32.dp),
+                                selected = equipment in enabledEquipment,
+                                onClick = {
+                                    val newSet = enabledEquipment.toMutableSet()
+                                    if (equipment in newSet) newSet.remove(equipment) else newSet.add(equipment)
+                                    coroutineScope.launch { settings.setEnabledEquipment(newSet) }
+                                },
+                                label = {
+                                    Text(
+                                        text = equipment.replaceFirstChar { it.uppercase() },
+                                        fontSize = 14.sp
                                     )
                                 }
                             )
                         }
                     }
-                    androidx.compose.material3.TextButton(onClick = { expandedEquipment = !expandedEquipment }) {
-                        Text(if (expandedEquipment) "Show Less" else "Show All Equipment")
-                    }
                 }
             }
         }
 
-        // Display Section
         item {
             SettingsSection(title = "Display") {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(0.dp)) {
+                    SettingsRow(
+                        title = "Appearance",
+                        trailing = {
+                            Box {
+                                TextButton(onClick = { expandedThemeMode = true }) {
+                                    Text(themeMode.displayName)
+                                    Icon(Icons.Default.ArrowDropDown, contentDescription = "Choose appearance")
+                                }
+                                DropdownMenu(
+                                    expanded = expandedThemeMode,
+                                    onDismissRequest = { expandedThemeMode = false }
+                                ) {
+                                    ThemeMode.entries.forEach { mode ->
+                                        DropdownMenuItem(
+                                            text = { Text(mode.displayName) },
+                                            onClick = {
+                                                expandedThemeMode = false
+                                                coroutineScope.launch { settings.setThemeMode(mode) }
+                                            }
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    )
                     SettingsToggle(
-                        title = "Grid View",
-                        subtitle = "Show body parts as grid (off = list)",
+                        title = "Grid Layout",
                         checked = gridMode,
-                        onCheckedChange = { settings.setGridMode(it) }
+                        modifier = Modifier.testTag("grid-mode-toggle"),
+                        onCheckedChange = { coroutineScope.launch { settings.setGridMode(it) } }
                     )
                     SettingsToggle(
                         title = "Auto-play GIFs",
-                        subtitle = "Automatically play animated GIFs in lists",
                         checked = autoPlayGif,
-                        onCheckedChange = { settings.setAutoPlayGif(it) }
+                        onCheckedChange = { coroutineScope.launch { settings.setAutoPlayGif(it) } }
                     )
                 }
             }
         }
 
-        // GIF Management Section
         item {
-            SettingsSection(title = "GIF Management") {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    SettingsRow(
-                        title = "GIF Cache Status",
-                        subtitle = if (gifDownloadComplete) "All GIFs downloaded" else "GIFs load on demand",
-                        trailing = {
-                            if (!gifDownloadComplete) {
-                                androidx.compose.material3.Button(
-                                    onClick = {
-                                        // Trigger GIF download
-                                        Telemetry.trackEvent("gif_download_start", "Settings", emptyMap())
-                                    }
-                                ) {
-                                    Text("Download All GIFs")
-                                }
-                            } else {
-                                Text("Complete", color = MaterialTheme.colorScheme.primary)
-                            }
+            SettingsSection(title = "GIF Library") {
+                SettingsRow(
+                    title = "GIF Folder",
+                    subtitle = if (customGifDirectoryUri == null) {
+                        "Bundled animations"
+                    } else {
+                        customGifValidation.toGifLibrarySubtitle()
+                    },
+                    trailing = {
+                        TextButton(onClick = { gifDirectoryPicker.launch(null) }) {
+                            Text(if (customGifDirectoryUri == null) "Choose" else "Change")
                         }
-                    )
-                    SettingsRow(
-                        title = "Cache Size",
-                        subtitle = formatFileSize(gifCacheSize),
-                        trailing = {
-                            androidx.compose.material3.Button(onClick = {
-                                settings.setGifCacheSize(0)
-                                Telemetry.trackEvent("gif_cache_clear", "Settings", emptyMap())
-                            }) {
-                                Text("Clear Cache")
-                            }
+                    }
+                )
+                if (customGifDirectoryUri != null) {
+                    TextButton(onClick = {
+                        runCatching {
+                            context.contentResolver.releasePersistableUriPermission(
+                                Uri.parse(customGifDirectoryUri),
+                                Intent.FLAG_GRANT_READ_URI_PERMISSION
+                            )
                         }
+                        coroutineScope.launch { settings.setCustomGifDirectoryUri(null) }
+                    }) {
+                        Text("Use Bundled GIFs Only")
+                    }
+                }
+                gifLibraryMessage?.let { message ->
+                    Text(
+                        text = message,
+                        fontSize = 12.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
         }
 
-        // Debug Section
         item {
-            SettingsSection(title = "Debug", subtitle = "Developer options") {
-                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerHighest)
+            ) {
+                Column {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { expandedDebug = !expandedDebug }
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("Debug", modifier = Modifier.weight(1f), fontSize = 18.sp, fontWeight = FontWeight.Bold)
+                        Icon(
+                            imageVector = if (expandedDebug) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                            contentDescription = if (expandedDebug) "Hide debug options" else "Show debug options"
+                        )
+                    }
                     if (expandedDebug) {
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                        Column(
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
                         SettingsRow(
                             title = "Share Logs",
                             subtitle = "Email app logs for debugging",
                             trailing = {
-                                androidx.compose.material3.Button(onClick = {
-                                    shareLogs()
-                                }) {
-                                    Text("Share")
-                                }
+                                Button(onClick = { shareLogs() }) { Text("Share") }
                             }
                         )
                         SettingsRow(
                             title = "Reset Database",
                             subtitle = "Re-import all exercises from JSON",
                             trailing = {
-                                androidx.compose.material3.Button(onClick = {
-                                    resetDatabase()
-                                }) {
-                                    Text("Reset")
-                                }
+                                Button(onClick = { resetDatabase() }) { Text("Reset") }
                             }
                         )
                         SettingsRow(
                             title = "Export Telemetry",
                             subtitle = "Share telemetry data",
                             trailing = {
-                                androidx.compose.material3.Button(onClick = {
-                                    exportTelemetry()
-                                }) {
-                                    Text("Export")
-                                }
+                                Button(onClick = { exportTelemetry() }) { Text("Export") }
                             }
                         )
-                    }
-                    androidx.compose.material3.TextButton(onClick = { expandedDebug = !expandedDebug }) {
-                        Text(if (expandedDebug) "Hide Debug Options" else "Show Debug Options")
+                        }
                     }
                 }
             }
         }
 
-        // About Section
         item {
             SettingsSection(title = "About") {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    SettingsRow(title = "Version", subtitle = "1.0.0")
-                    SettingsRow(title = "Dataset", subtitle = "1,324 exercises from Gym Visual")
-                    SettingsRow(title = "License", subtitle = "MIT + Gym Visual media terms")
+                Column(verticalArrangement = Arrangement.spacedBy(0.dp)) {
+                    SettingsRow(
+                        title = "Version",
+                        trailing = {
+                            Text(
+                                BuildConfig.VERSION_NAME,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    )
+                    SettingsRow(title = "Exercise Data", trailing = { Text("Gym Visual", color = MaterialTheme.colorScheme.onSurfaceVariant) })
+                    SettingsRow(title = "License", trailing = { Text("MIT", color = MaterialTheme.colorScheme.onSurfaceVariant) })
                 }
             }
+        }
         }
     }
 }
@@ -321,7 +414,7 @@ fun SettingsSection(
         ) {
             Text(text = title, fontSize = 18.sp, fontWeight = FontWeight.Bold)
             subtitle?.let { Text(text = it, fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant) }
-            Divider(color = MaterialTheme.colorScheme.outlineVariant)
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
             content()
         }
     }
@@ -331,14 +424,14 @@ fun SettingsSection(
 fun SettingsRow(
     title: String,
     subtitle: String? = null,
-    trailing: @Composable () -> Unit
+    trailing: @Composable () -> Unit = {}
 ) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Column {
+        Column(modifier = Modifier.weight(1f)) {
             Text(title, fontSize = 16.sp)
             subtitle?.let { Text(it, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant) }
         }
@@ -349,41 +442,48 @@ fun SettingsRow(
 @Composable
 fun SettingsToggle(
     title: String,
-    subtitle: String? = null,
     checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit
+    onCheckedChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier,
+    subtitle: String? = null
 ) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Column {
+        Column(modifier = Modifier.weight(1f)) {
             Text(title, fontSize = 16.sp)
             subtitle?.let { Text(it, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant) }
         }
         androidx.compose.material3.Switch(
+            modifier = modifier,
             checked = checked,
             onCheckedChange = onCheckedChange
         )
     }
 }
 
-private fun getDefaultEquipmentSet(): Set<String> {
-    return setOf(
-        "body weight", "dumbbell", "cable", "barbell", "leverage machine",
-        "band", "smith machine", "kettlebell", "weighted", "stability ball",
-        "ez barbell", "other"
+internal object SettingsCatalog {
+    val languages = listOf(
+        "en" to "English", "es" to "Español", "it" to "Italiano", "tr" to "Türkçe",
+        "ru" to "Русский", "zh" to "中文", "hi" to "हिन्दी", "pl" to "Polski",
+        "ko" to "한국어", "fr" to "Français"
     )
 }
 
-private fun formatFileSize(bytes: Long): String {
-    return when {
-        bytes < 1024 -> "$bytes B"
-        bytes < 1024 * 1024 -> "${bytes / 1024} KB"
-        bytes < 1024 * 1024 * 1024 -> String.format("%.1f MB", bytes / (1024.0 * 1024))
-        else -> String.format("%.1f GB", bytes / (1024.0 * 1024 * 1024))
+private val ThemeMode.displayName: String
+    get() = when (this) {
+        ThemeMode.SYSTEM -> "System default"
+        ThemeMode.LIGHT -> "Light"
+        ThemeMode.DARK -> "Dark"
     }
+
+private fun GifOverrideValidation?.toGifLibrarySubtitle(): String = when {
+    this == null -> "Checking custom folder…"
+    !directoryReadable || validOverrideCount == 0 -> "No matching GIFs; bundled animations are in use"
+    ignoredGifCount > 0 -> "$validOverrideCount matching GIFs; bundled animations fill gaps"
+    else -> "$validOverrideCount matching GIFs ready"
 }
 
 private fun shareLogs() {

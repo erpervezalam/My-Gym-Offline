@@ -2,6 +2,8 @@
 
 An offline-first Android app for gym exercises featuring **1,324 exercises** with multilingual instructions, animated GIFs, and powerful filtering capabilities — all without requiring an internet connection.
 
+Current release: **0.5.0**. See [release notes](RELEASE_NOTES.md).
+
 ---
 
 ## ✨ Features
@@ -27,8 +29,8 @@ MVVM + Repository + Room Database + DataStore Preferences
 - **UI Framework**: Jetpack Compose (Material 3)
 - **Language**: Kotlin
 - **Min SDK**: 24 (Android 7.0)
-- **Target SDK**: 35 (Android 15)
-- **Compile SDK**: 35
+- **Target SDK**: 36 (Android 16)
+- **Compile SDK**: 36
 
 ---
 
@@ -78,7 +80,7 @@ This app is powered by the **[Exercises Dataset](https://github.com/hasaneyldrm/
 
 - Android Studio Ladybug or later
 - JDK 17+
-- Android SDK 35
+- Android SDK 36
 
 ### Build & Run
 

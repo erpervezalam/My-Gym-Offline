@@ -7,6 +7,17 @@ import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 
+enum class ThemeMode(val preferenceValue: String) {
+    SYSTEM("system"),
+    LIGHT("light"),
+    DARK("dark");
+
+    companion object {
+        fun fromPreference(value: String?): ThemeMode =
+            entries.firstOrNull { it.preferenceValue == value } ?: SYSTEM
+    }
+}
+
 class SettingsDataStore(private val prefs: SharedPreferences) {
 
     private val gson = Gson()
@@ -35,22 +46,35 @@ class SettingsDataStore(private val prefs: SharedPreferences) {
     private val _autoPlayGif = MutableStateFlow(prefs.getBoolean("auto_play_gif", true))
     val autoPlayGifFlow: Flow<Boolean> = _autoPlayGif
 
+    private val _themeMode = MutableStateFlow(
+        when {
+            prefs.contains(THEME_MODE_KEY) -> ThemeMode.fromPreference(
+                prefs.getString(THEME_MODE_KEY, null)
+            )
+            // Keep an existing installation's explicit light/dark choice during migration.
+            prefs.contains(LEGACY_DARK_MODE_KEY) -> if (
+                prefs.getBoolean(LEGACY_DARK_MODE_KEY, false)
+            ) ThemeMode.DARK else ThemeMode.LIGHT
+            else -> ThemeMode.SYSTEM
+        }
+    )
+    val themeModeFlow: Flow<ThemeMode> = _themeMode
+
     private val _favoritesOnly = MutableStateFlow(prefs.getBoolean("favorites_only", false))
     val favoritesOnlyFlow: Flow<Boolean> = _favoritesOnly
 
-    private val _gifDownloadComplete = MutableStateFlow(prefs.getBoolean("gif_download_complete", false))
-    val gifDownloadCompleteFlow: Flow<Boolean> = _gifDownloadComplete
-
-    private val _gifCacheSize = MutableStateFlow(prefs.getLong("gif_cache_size", 0L))
-    val gifCacheSizeFlow: Flow<Long> = _gifCacheSize
+    private val _customGifDirectoryUri = MutableStateFlow(prefs.getString("custom_gif_directory_uri", null))
+    val customGifDirectoryUriFlow: Flow<String?> = _customGifDirectoryUri
 
     companion object {
         const val DEFAULT_LANGUAGE = "en"
         const val DEFAULT_GRID_MODE = true
         const val DEFAULT_AUTO_PLAY_GIF = true
         const val DEFAULT_FAVORITES_ONLY = false
-        const val DEFAULT_GIF_DOWNLOAD_COMPLETE = false
-        const val DEFAULT_GIF_CACHE_SIZE = 0L
+        const val DEFAULT_THEME_MODE = "system"
+
+        private const val THEME_MODE_KEY = "theme_mode"
+        private const val LEGACY_DARK_MODE_KEY = "dark_mode"
 
         fun create(context: Context): SettingsDataStore {
             val prefs = context.getSharedPreferences("my_gym_offline_settings", Context.MODE_PRIVATE)
@@ -87,18 +111,22 @@ class SettingsDataStore(private val prefs: SharedPreferences) {
         _autoPlayGif.value = enabled
     }
 
+    suspend fun setThemeMode(mode: ThemeMode) {
+        prefs.edit()
+            .putString(THEME_MODE_KEY, mode.preferenceValue)
+            // Retain this value for versions that only understand the legacy preference.
+            .putBoolean(LEGACY_DARK_MODE_KEY, mode == ThemeMode.DARK)
+            .apply()
+        _themeMode.value = mode
+    }
+
     suspend fun setFavoritesOnly(enabled: Boolean) {
         prefs.edit().putBoolean("favorites_only", enabled).apply()
         _favoritesOnly.value = enabled
     }
 
-    suspend fun setGifDownloadComplete(complete: Boolean) {
-        prefs.edit().putBoolean("gif_download_complete", complete).apply()
-        _gifDownloadComplete.value = complete
-    }
-
-    suspend fun setGifCacheSize(size: Long) {
-        prefs.edit().putLong("gif_cache_size", size).apply()
-        _gifCacheSize.value = size
+    suspend fun setCustomGifDirectoryUri(uri: String?) {
+        prefs.edit().putString("custom_gif_directory_uri", uri).apply()
+        _customGifDirectoryUri.value = uri
     }
 }
